@@ -142,6 +142,19 @@ tasks:
     - move_task
     - clear_completed_tasks
 
+keep:
+  core:
+    - list_keep_notes
+    - get_keep_note
+    - create_keep_note
+  extended:
+    - delete_keep_note
+    - download_keep_attachment
+    - share_keep_note
+    - unshare_keep_note
+  complete:
+    - get_keep_note_permissions
+
 search:
   core:
     - search_custom

@@ -61,6 +61,10 @@ SLIDES_READONLY_SCOPE = "https://www.googleapis.com/auth/presentations.readonly"
 TASKS_SCOPE = "https://www.googleapis.com/auth/tasks"
 TASKS_READONLY_SCOPE = "https://www.googleapis.com/auth/tasks.readonly"
 
+# Google Keep API scopes
+KEEP_SCOPE = "https://www.googleapis.com/auth/keep"
+KEEP_READONLY_SCOPE = "https://www.googleapis.com/auth/keep.readonly"
+
 # Google Custom Search API scope
 CUSTOM_SEARCH_SCOPE = "https://www.googleapis.com/auth/cse"
 
@@ -97,6 +101,8 @@ SLIDES_SCOPES = [SLIDES_SCOPE, SLIDES_READONLY_SCOPE]
 
 TASKS_SCOPES = [TASKS_SCOPE, TASKS_READONLY_SCOPE]
 
+KEEP_SCOPES = [KEEP_SCOPE, KEEP_READONLY_SCOPE]
+
 CUSTOM_SEARCH_SCOPES = [CUSTOM_SEARCH_SCOPE]
 
 # Tool-to-scopes mapping
@@ -110,6 +116,7 @@ TOOL_SCOPES_MAP = {
     "forms": FORMS_SCOPES,
     "slides": SLIDES_SCOPES,
     "tasks": TASKS_SCOPES,
+    "keep": KEEP_SCOPES,
     "search": CUSTOM_SEARCH_SCOPES,
 }
 

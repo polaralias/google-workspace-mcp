@@ -103,6 +103,7 @@ def main():
             "forms",
             "slides",
             "tasks",
+            "keep",
             "search",
         ],
         help="Specify which tools to register. If not provided, all tools are registered.",
@@ -183,6 +184,7 @@ def main():
         "forms": lambda: import_module("gforms.forms_tools"),
         "slides": lambda: import_module("gslides.slides_tools"),
         "tasks": lambda: import_module("gtasks.tasks_tools"),
+        "keep": lambda: import_module("gkeep.keep_tools"),
         "search": lambda: import_module("gsearch.search_tools"),
     }
 
@@ -196,6 +198,7 @@ def main():
         "forms": "📝",
         "slides": "🖼️",
         "tasks": "✓",
+        "keep": "📝",
         "search": "🔍",
     }
 

@@ -43,3 +43,15 @@ Extend `core/api_enablement.py` with API IDs and enablement links for:
     - Google People (`people.googleapis.com`)
     - Google Meet (`meet.googleapis.com`)
     - Google Admin SDK (`admin.googleapis.com`)
+
+### Phase 1: Add Google Keep (new app surface)
+
+#### 1.1 - 1.4 Implement Google Keep Tools
+- Added `gkeep/keep_tools.py` with the following tools:
+    - Core: `list_keep_notes`, `get_keep_note`, `create_keep_note`
+    - Extended: `delete_keep_note`, `download_keep_attachment`, `share_keep_note`, `unshare_keep_note`
+    - Complete: `get_keep_note_permissions`
+- Updated `auth/scopes.py` with `https://www.googleapis.com/auth/keep` and `https://www.googleapis.com/auth/keep.readonly`.
+- Updated `auth/service_decorator.py` to support `keep` service configuration and scopes.
+- Registered `keep` tool in `main.py` (imports, icons, CLI arguments).
+- Added `keep` tool tiers to `core/tool_tiers.yaml`.
