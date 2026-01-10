@@ -1073,3 +1073,250 @@ async def delete_event(
     confirmation_message = f"Successfully deleted event (ID: {event_id}) from calendar '{calendar_id}' for {user_google_email}."
     logger.info(f"Event deleted successfully for {user_google_email}. ID: {event_id}")
     return confirmation_message
+
+
+@server.tool()
+@handle_http_errors("get_free_busy", is_read_only=True, service_type="calendar")
+@require_google_service("calendar", "calendar_read")
+async def get_free_busy(
+    service,
+    user_google_email: str,
+    time_min: str,
+    time_max: str,
+    items: List[str],
+    time_zone: str = "UTC",
+) -> str:
+    """
+    Returns free/busy information for a set of calendars.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        time_min (str): The start of the interval for the query (RFC3339).
+        time_max (str): The end of the interval for the query (RFC3339).
+        items (List[str]): List of calendar IDs to check.
+        time_zone (str): Time zone used in the response (default: 'UTC').
+
+    Returns:
+        str: Formatted free/busy information.
+    """
+    logger.info(
+        f"[get_free_busy] Invoked. Email: '{user_google_email}', items: {items}"
+    )
+
+    formatted_time_min = _correct_time_format_for_api(time_min, "time_min")
+    formatted_time_max = _correct_time_format_for_api(time_max, "time_max")
+
+    body = {
+        "timeMin": formatted_time_min,
+        "timeMax": formatted_time_max,
+        "timeZone": time_zone,
+        "items": [{"id": item} for item in items],
+    }
+
+    free_busy_response = await asyncio.to_thread(
+        lambda: service.freebusy().query(body=body).execute()
+    )
+
+    calendars = free_busy_response.get("calendars", {})
+    if not calendars:
+        return f"No free/busy information found for the provided calendars."
+
+    output = []
+    for cal_id, data in calendars.items():
+        busy_intervals = data.get("busy", [])
+        if busy_intervals:
+            intervals_str = ", ".join(
+                [f"{i['start']} to {i['end']}" for i in busy_intervals]
+            )
+            output.append(f"Calendar {cal_id}: Busy: {intervals_str}")
+        else:
+            output.append(f"Calendar {cal_id}: Free (no busy intervals found)")
+
+    result = f"Free/Busy Information ({time_min} to {time_max}, {time_zone}):\n" + "\n".join(output)
+    logger.info(f"Successfully retrieved free/busy info for {len(items)} calendars.")
+    return result
+
+
+@server.tool()
+@handle_http_errors("list_calendar_acl", is_read_only=True, service_type="calendar")
+@require_google_service("calendar", "calendar_acls")
+async def list_calendar_acl(
+    service, user_google_email: str, calendar_id: str = "primary"
+) -> str:
+    """
+    Returns the rules in the access control list for the calendar.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        calendar_id (str): Calendar ID (default: 'primary').
+
+    Returns:
+        str: Formatted list of ACL rules.
+    """
+    logger.info(f"[list_calendar_acl] Invoked. Email: '{user_google_email}', Calendar: {calendar_id}")
+
+    acl = await asyncio.to_thread(
+        lambda: service.acl().list(calendarId=calendar_id).execute()
+    )
+    items = acl.get("items", [])
+    if not items:
+        return f"No ACL rules found for calendar '{calendar_id}'."
+
+    rules_list = []
+    for rule in items:
+        scope = rule.get("scope", {})
+        scope_type = scope.get("type", "unknown")
+        scope_value = scope.get("value", "N/A")
+        role = rule.get("role", "unknown")
+        rule_id = rule.get("id", "unknown")
+        rules_list.append(f"- ID: {rule_id}, Role: {role}, Scope: {scope_type} ({scope_value})")
+
+    result = f"ACL Rules for calendar '{calendar_id}':\n" + "\n".join(rules_list)
+    logger.info(f"Successfully listed {len(items)} ACL rules for calendar '{calendar_id}'.")
+    return result
+
+
+@server.tool()
+@handle_http_errors("create_calendar_acl_rule", service_type="calendar")
+@require_google_service("calendar", "calendar_acls")
+async def create_calendar_acl_rule(
+    service,
+    user_google_email: str,
+    role: str,
+    scope_type: str,
+    scope_value: Optional[str] = None,
+    calendar_id: str = "primary",
+) -> str:
+    """
+    Creates an access control rule.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        role: The role assigned to the scope. Possible values are: "none", "freeBusyReader", "reader", "writer", "owner".
+        scope_type: The type of the scope. Possible values are: "default", "user", "group", "domain".
+        scope_value: The email address of a user or group, or the name of a domain, depending on the scope type. Omit for type "default".
+        calendar_id (str): Calendar ID (default: 'primary').
+
+    Returns:
+        str: Confirmation message with the created rule ID.
+    """
+    logger.info(
+        f"[create_calendar_acl_rule] Invoked. Email: '{user_google_email}', Role: {role}, Scope: {scope_type} ({scope_value})"
+    )
+
+    rule = {
+        "role": role,
+        "scope": {
+            "type": scope_type,
+        },
+    }
+    if scope_value:
+        rule["scope"]["value"] = scope_value
+
+    created_rule = await asyncio.to_thread(
+        lambda: service.acl().insert(calendarId=calendar_id, body=rule).execute()
+    )
+
+    rule_id = created_rule.get("id")
+    message = f"Successfully created ACL rule (ID: {rule_id}) for calendar '{calendar_id}'."
+    logger.info(message)
+    return message
+
+
+@server.tool()
+@handle_http_errors("delete_calendar_acl_rule", service_type="calendar")
+@require_google_service("calendar", "calendar_acls")
+async def delete_calendar_acl_rule(
+    service, user_google_email: str, rule_id: str, calendar_id: str = "primary"
+) -> str:
+    """
+    Deletes an access control rule.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        rule_id (str): The ID of the rule to delete.
+        calendar_id (str): Calendar ID (default: 'primary').
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[delete_calendar_acl_rule] Invoked. Email: '{user_google_email}', Rule ID: {rule_id}"
+    )
+
+    await asyncio.to_thread(
+        lambda: service.acl().delete(calendarId=calendar_id, ruleId=rule_id).execute()
+    )
+
+    message = f"Successfully deleted ACL rule (ID: {rule_id}) from calendar '{calendar_id}'."
+    logger.info(message)
+    return message
+
+
+@server.tool()
+@handle_http_errors("create_recurring_event", service_type="calendar")
+@require_google_service("calendar", "calendar_events")
+async def create_recurring_event(
+    service,
+    user_google_email: str,
+    summary: str,
+    start_time: str,
+    end_time: str,
+    recurrence: List[str],
+    calendar_id: str = "primary",
+    description: Optional[str] = None,
+    location: Optional[str] = None,
+    attendees: Optional[List[str]] = None,
+    timezone: Optional[str] = None,
+) -> str:
+    """
+    Creates a recurring event.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        summary (str): Event title.
+        start_time (str): Start time of the first occurrence (RFC3339).
+        end_time (str): End time of the first occurrence (RFC3339).
+        recurrence (List[str]): List of RRULE, EXRULE, RDATE and EXDATE lines for a recurring event, as specified in RFC5545. Example: ["RRULE:FREQ=WEEKLY;COUNT=10"]
+        calendar_id (str): Calendar ID (default: 'primary').
+        description (Optional[str]): Event description.
+        location (Optional[str]): Event location.
+        attendees (Optional[List[str]]): Attendee email addresses.
+        timezone (Optional[str]): Timezone (e.g., "America/New_York").
+
+    Returns:
+        str: Confirmation message of the successful recurring event creation.
+    """
+    logger.info(
+        f"[create_recurring_event] Invoked. Email: '{user_google_email}', Summary: {summary}, Recurrence: {recurrence}"
+    )
+
+    event_body = {
+        "summary": summary,
+        "start": (
+            {"date": start_time} if "T" not in start_time else {"dateTime": start_time}
+        ),
+        "end": ({"date": end_time} if "T" not in end_time else {"dateTime": end_time}),
+        "recurrence": recurrence,
+    }
+
+    if location:
+        event_body["location"] = location
+    if description:
+        event_body["description"] = description
+    if timezone:
+        if "dateTime" in event_body["start"]:
+            event_body["start"]["timeZone"] = timezone
+        if "dateTime" in event_body["end"]:
+            event_body["end"]["timeZone"] = timezone
+    if attendees:
+        event_body["attendees"] = [{"email": email} for email in attendees]
+
+    created_event = await asyncio.to_thread(
+        lambda: service.events().insert(calendarId=calendar_id, body=event_body).execute()
+    )
+
+    link = created_event.get("htmlLink", "No link available")
+    message = f"Successfully created recurring event '{summary}' (ID: {created_event.get('id')}) for {user_google_email}. Link: {link}"
+    logger.info(message)
+    return message
