@@ -776,6 +776,87 @@ async def update_task(
 
 @server.tool()  # type: ignore
 @require_google_service("tasks", "tasks")  # type: ignore
+@handle_http_errors("complete_task", service_type="tasks")  # type: ignore
+async def complete_task(
+    service: Resource, user_google_email: str, task_list_id: str, task_id: str
+) -> str:
+    """
+    Mark a task as completed.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        task_list_id (str): The ID of the task list.
+        task_id (str): The ID of the task.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[complete_task] Invoked. Email: '{user_google_email}', Task: '{task_id}'"
+    )
+    return await update_task(
+        service, user_google_email, task_list_id, task_id, status="completed"
+    )
+
+
+@server.tool()  # type: ignore
+@require_google_service("tasks", "tasks")  # type: ignore
+@handle_http_errors("reopen_task", service_type="tasks")  # type: ignore
+async def reopen_task(
+    service: Resource, user_google_email: str, task_list_id: str, task_id: str
+) -> str:
+    """
+    Mark a completed task as not completed (needs action).
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        task_list_id (str): The ID of the task list.
+        task_id (str): The ID of the task.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[reopen_task] Invoked. Email: '{user_google_email}', Task: '{task_id}'"
+    )
+    # The API status for uncompleted is "needsAction"
+    return await update_task(
+        service, user_google_email, task_list_id, task_id, status="needsAction"
+    )
+
+
+@server.tool()  # type: ignore
+@require_google_service("tasks", "tasks")  # type: ignore
+@handle_http_errors("set_task_due_date", service_type="tasks")  # type: ignore
+async def set_task_due_date(
+    service: Resource,
+    user_google_email: str,
+    task_list_id: str,
+    task_id: str,
+    due_date: str,
+) -> str:
+    """
+    Set the due date for a task.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        task_list_id (str): The ID of the task list.
+        task_id (str): The ID of the task.
+        due_date (str): Due date in RFC 3339 format (e.g., "2024-12-31T23:59:59Z").
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[set_task_due_date] Invoked. Email: '{user_google_email}', Task: '{task_id}', Due: '{due_date}'"
+    )
+    return await update_task(
+        service, user_google_email, task_list_id, task_id, due=due_date
+    )
+
+
+@server.tool()  # type: ignore
+@require_google_service("tasks", "tasks")  # type: ignore
 @handle_http_errors("delete_task", service_type="tasks")  # type: ignore
 async def delete_task(
     service: Resource, user_google_email: str, task_list_id: str, task_id: str

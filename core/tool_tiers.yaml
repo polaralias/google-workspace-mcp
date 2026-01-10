@@ -129,6 +129,11 @@ chat:
     - search_messages
   extended:
     - list_spaces
+    - create_space
+    - list_members
+    - add_member
+    - remove_member
+    - reply_in_thread
   complete: []
 
 forms:
@@ -137,8 +142,8 @@ forms:
     - get_form
   extended:
     - list_form_responses
+    - batch_update_form
   complete:
-    - set_publish_settings
     - get_form_response
 
 slides:
@@ -149,7 +154,13 @@ slides:
     - batch_update_presentation
     - get_page
     - get_page_thumbnail
+    - create_slide
+    - add_textbox
+    - set_text_style
+    - replace_text_everywhere
+    - insert_image_from_url
   complete:
+    - export_presentation_pdf
     - read_presentation_comments
     - create_presentation_comment
     - reply_to_presentation_comment
@@ -163,6 +174,9 @@ tasks:
     - update_task
   extended:
     - delete_task
+    - complete_task
+    - reopen_task
+    - set_task_due_date
   complete:
     - list_task_lists
     - get_task_list
