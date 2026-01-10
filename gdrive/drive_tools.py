@@ -1558,3 +1558,338 @@ async def transfer_drive_ownership(
     output_parts.extend(["", "Note: Previous owner now has editor access."])
 
     return "\n".join(output_parts)
+
+
+@server.tool()
+@handle_http_errors("create_drive_folder", is_read_only=False, service_type="drive")
+@require_google_service("drive", "drive_file")
+async def create_drive_folder(
+    service,
+    user_google_email: str,
+    name: str,
+    folder_id: str = "root",
+    share_with: Optional[str] = None,
+    share_role: str = "reader",
+) -> str:
+    """
+    Creates a new folder in Google Drive.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        name (str): The name of the new folder.
+        folder_id (str): The ID of the parent folder. Defaults to 'root'.
+        share_with (Optional[str]): Email address to share the folder with immediately after creation.
+        share_role (str): Role for the shared user (if share_with is provided). Defaults to 'reader'.
+
+    Returns:
+        str: Confirmation message with folder ID and link.
+    """
+    logger.info(f"[create_drive_folder] Creating folder '{name}' in '{folder_id}'")
+
+    resolved_folder_id = await resolve_folder_id(service, folder_id)
+
+    file_metadata = {
+        "name": name,
+        "mimeType": "application/vnd.google-apps.folder",
+        "parents": [resolved_folder_id],
+    }
+
+    folder = await asyncio.to_thread(
+        service.files().create(
+            body=file_metadata,
+            fields="id, name, webViewLink",
+            supportsAllDrives=True
+        ).execute
+    )
+
+    folder_id_created = folder.get("id")
+    link = folder.get("webViewLink")
+
+    output = [f"Successfully created folder '{name}' (ID: {folder_id_created})", f"Link: {link}"]
+
+    if share_with:
+        try:
+            await share_drive_file(service, user_google_email, folder_id_created, share_with, role=share_role)
+            output.append(f"Shared with {share_with} as {share_role}")
+        except Exception as e:
+            output.append(f"Failed to share with {share_with}: {str(e)}")
+
+    return "\n".join(output)
+
+
+@server.tool()
+@handle_http_errors("copy_drive_file", is_read_only=False, service_type="drive")
+@require_google_service("drive", "drive_file")
+async def copy_drive_file(
+    service,
+    user_google_email: str,
+    file_id: str,
+    name: Optional[str] = None,
+    folder_id: Optional[str] = None,
+) -> str:
+    """
+    Copies a Google Drive file.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        file_id (str): The ID of the file to copy.
+        name (Optional[str]): The name for the copy. If not provided, defaults to "Copy of [original name]".
+        folder_id (Optional[str]): The ID of the folder to place the copy in. If not provided, places it in the same folder as the original (or root if undetermined).
+
+    Returns:
+        str: Confirmation message with the new file details.
+    """
+    logger.info(f"[copy_drive_file] Copying file '{file_id}'")
+
+    resolved_file_id, _ = await resolve_drive_item(service, file_id)
+    file_id = resolved_file_id
+
+    file_metadata = {}
+    if name:
+        file_metadata["name"] = name
+
+    if folder_id:
+        resolved_folder_id = await resolve_folder_id(service, folder_id)
+        file_metadata["parents"] = [resolved_folder_id]
+    else:
+        # If no folder_id provided, try to find the original file's parent to keep it in the same folder
+        # Note: 'parents' is not always returned by resolve_drive_item unless requested
+        try:
+            original_file = await asyncio.to_thread(
+                service.files().get(
+                    fileId=file_id,
+                    fields="parents",
+                    supportsAllDrives=True
+                ).execute
+            )
+            parents = original_file.get("parents")
+            if parents:
+                file_metadata["parents"] = parents
+        except Exception as e:
+            logger.warning(f"[copy_drive_file] Could not determine original file parents: {e}")
+            # Fallback to root (default behavior if parents not specified)
+
+    copied_file = await asyncio.to_thread(
+        service.files().copy(
+            fileId=file_id,
+            body=file_metadata,
+            fields="id, name, webViewLink, parents",
+            supportsAllDrives=True
+        ).execute
+    )
+
+    return (
+        f"Successfully copied file.\n"
+        f"New File: '{copied_file.get('name')}' (ID: {copied_file.get('id')})\n"
+        f"Link: {copied_file.get('webViewLink')}"
+    )
+
+
+@server.tool()
+@handle_http_errors("trash_drive_file", is_read_only=False, service_type="drive")
+@require_google_service("drive", "drive_file")
+async def trash_drive_file(
+    service,
+    user_google_email: str,
+    file_id: str,
+) -> str:
+    """
+    Moves a Google Drive file or folder to the trash.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        file_id (str): The ID of the file or folder to trash.
+
+    Returns:
+        str: Confirmation message.
+    """
+    return await update_drive_file(service, user_google_email, file_id, trashed=True)
+
+
+@server.tool()
+@handle_http_errors("untrash_drive_file", is_read_only=False, service_type="drive")
+@require_google_service("drive", "drive_file")
+async def untrash_drive_file(
+    service,
+    user_google_email: str,
+    file_id: str,
+) -> str:
+    """
+    Restores a Google Drive file or folder from the trash.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        file_id (str): The ID of the file or folder to restore.
+
+    Returns:
+        str: Confirmation message.
+    """
+    return await update_drive_file(service, user_google_email, file_id, trashed=False)
+
+
+@server.tool()
+@handle_http_errors("delete_drive_file", is_read_only=False, service_type="drive")
+@require_google_service("drive", "drive_file")
+async def delete_drive_file(
+    service,
+    user_google_email: str,
+    file_id: str,
+) -> str:
+    """
+    Permanently deletes a Google Drive file or folder. This action cannot be undone.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        file_id (str): The ID of the file or folder to delete permanently.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(f"[delete_drive_file] Permanently deleting file '{file_id}'")
+
+    resolved_file_id, file_metadata = await resolve_drive_item(service, file_id, extra_fields="name")
+    file_id = resolved_file_id
+
+    await asyncio.to_thread(
+        service.files().delete(fileId=file_id, supportsAllDrives=True).execute
+    )
+
+    return f"Successfully deleted '{file_metadata.get('name', 'Unknown')}' (ID: {file_id}) permanently."
+
+
+@server.tool()
+@handle_http_errors("list_drive_revisions", is_read_only=True, service_type="drive")
+@require_google_service("drive", "drive_read")
+async def list_drive_revisions(
+    service,
+    user_google_email: str,
+    file_id: str,
+    page_size: int = 10,
+) -> str:
+    """
+    Lists the revisions of a Google Drive file.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        file_id (str): The ID of the file.
+        page_size (int): Max number of revisions to return. Defaults to 10.
+
+    Returns:
+        str: List of revisions.
+    """
+    logger.info(f"[list_drive_revisions] Listing revisions for '{file_id}'")
+
+    resolved_file_id, file_metadata = await resolve_drive_item(service, file_id, extra_fields="name")
+    file_id = resolved_file_id
+
+    results = await asyncio.to_thread(
+        service.revisions().list(
+            fileId=file_id,
+            pageSize=page_size,
+            fields="revisions(id, mimeType, modifiedTime, size, originalFilename, keepForever, exportLinks)"
+        ).execute
+    )
+
+    revisions = results.get("revisions", [])
+    if not revisions:
+        return f"No revisions found for file '{file_metadata.get('name')}'."
+
+    output = [f"Revisions for '{file_metadata.get('name')}' (ID: {file_id}):"]
+    for rev in revisions:
+        size = f", Size: {rev.get('size')} bytes" if "size" in rev else ""
+        output.append(
+            f"- ID: {rev['id']}, Modified: {rev.get('modifiedTime')}{size}, "
+            f"Type: {rev.get('mimeType')}"
+        )
+
+    return "\n".join(output)
+
+
+@server.tool()
+@handle_http_errors("get_drive_revision", is_read_only=True, service_type="drive")
+@require_google_service("drive", "drive_read")
+async def get_drive_revision(
+    service,
+    user_google_email: str,
+    file_id: str,
+    revision_id: str,
+) -> str:
+    """
+    Gets a specific revision of a Google Drive file.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        file_id (str): The ID of the file.
+        revision_id (str): The ID of the revision to retrieve.
+
+    Returns:
+        str: Revision details.
+    """
+    logger.info(f"[get_drive_revision] Getting revision '{revision_id}' for '{file_id}'")
+
+    resolved_file_id, _ = await resolve_drive_item(service, file_id)
+    file_id = resolved_file_id
+
+    revision = await asyncio.to_thread(
+        service.revisions().get(
+            fileId=file_id,
+            revisionId=revision_id,
+            fields="id, mimeType, modifiedTime, size, originalFilename, keepForever, lastModifyingUser, exportLinks"
+        ).execute
+    )
+
+    output = [
+        f"Revision ID: {revision.get('id')}",
+        f"Modified: {revision.get('modifiedTime')}",
+        f"MIME Type: {revision.get('mimeType')}",
+    ]
+
+    if "size" in revision:
+        output.append(f"Size: {revision['size']} bytes")
+    if "lastModifyingUser" in revision:
+        user = revision["lastModifyingUser"]
+        output.append(f"Modified by: {user.get('displayName')} ({user.get('emailAddress')})")
+
+    return "\n".join(output)
+
+
+@server.tool()
+@handle_http_errors("list_shared_drives", is_read_only=True, service_type="drive")
+@require_google_service("drive", "drive_read")
+async def list_shared_drives(
+    service,
+    user_google_email: str,
+    page_size: int = 50,
+    use_domain_admin_access: bool = False,
+) -> str:
+    """
+    Lists the shared drives (formerly Team Drives) accessible to the user.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        page_size (int): Max number of drives to return. Defaults to 50.
+        use_domain_admin_access (bool): Whether to request as a domain admin. Defaults to False.
+
+    Returns:
+        str: List of shared drives.
+    """
+    logger.info(f"[list_shared_drives] Listing shared drives")
+
+    results = await asyncio.to_thread(
+        service.drives().list(
+            pageSize=page_size,
+            useDomainAdminAccess=use_domain_admin_access,
+            fields="drives(id, name, createdTime, hidden)"
+        ).execute
+    )
+
+    drives = results.get("drives", [])
+    if not drives:
+        return "No shared drives found."
+
+    output = [f"Found {len(drives)} shared drives:"]
+    for drive in drives:
+        status = " (Hidden)" if drive.get("hidden") else ""
+        output.append(f"- {drive['name']} (ID: {drive['id']}){status}, Created: {drive.get('createdTime')}")
+
+    return "\n".join(output)

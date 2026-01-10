@@ -40,6 +40,14 @@ drive:
     - remove_drive_permission
     - transfer_drive_ownership
     - batch_share_drive_file
+    - create_drive_folder
+    - copy_drive_file
+    - trash_drive_file
+    - untrash_drive_file
+    - delete_drive_file
+    - list_drive_revisions
+    - get_drive_revision
+    - list_shared_drives
   complete:
     - get_drive_file_permissions
     - check_drive_file_public_access
