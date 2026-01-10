@@ -65,3 +65,17 @@ Extend `core/api_enablement.py` with API IDs and enablement links for:
     - `mark_gmail_read_unread`
     - `star_unstar_gmail_message`
 - Updated `core/tool_tiers.yaml` to include these new tools in the `extended` tier for Gmail.
+
+#### 2.2 Drive
+- Added file lifecycle tools to `gdrive/drive_tools.py`:
+    - `create_drive_folder`
+    - `copy_drive_file`
+    - `trash_drive_file`
+    - `untrash_drive_file`
+    - `delete_drive_file`
+- Added revision tools to `gdrive/drive_tools.py`:
+    - `list_drive_revisions`
+    - `get_drive_revision`
+- Added shared drive tools to `gdrive/drive_tools.py`:
+    - `list_shared_drives`
+- Updated `core/tool_tiers.yaml` to include these new tools in the `extended` tier for Drive.
