@@ -4,10 +4,13 @@ gmail:
     - get_gmail_message_content
     - get_gmail_messages_content_batch
     - send_gmail_message
+    - list_gmail_filters
 
   extended:
     - get_gmail_attachment_content
     - get_gmail_thread_content
+    - create_gmail_filter
+    - delete_gmail_filter
     - modify_gmail_message_labels
     - list_gmail_labels
     - manage_gmail_label
@@ -75,9 +78,13 @@ sheets:
     - create_spreadsheet
     - read_sheet_values
     - modify_sheet_values
+    - format_sheet_range
   extended:
     - list_spreadsheets
     - get_spreadsheet_info
+    - add_conditional_formatting
+    - update_conditional_formatting
+    - delete_conditional_formatting
   complete:
     - create_sheet
     - read_spreadsheet_comments

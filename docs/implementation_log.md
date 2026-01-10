@@ -1,1 +1,45 @@
+## Phase 0: Repo alignment fixes (quick wins)
 
+### 0.1 Fix tier config gaps (tools implemented but not reachable in tier mode)
+
+Update `core/tool_tiers.yaml` so these existing tools are included under an appropriate tier:
+
+* Gmail
+
+  * `list_gmail_filters`, `create_gmail_filter`, `delete_gmail_filter`
+* Sheets
+
+  * `format_sheet_range`
+  * `add_conditional_formatting`, `update_conditional_formatting`, `delete_conditional_formatting`
+
+Deliverables
+
+* Updated `core/tool_tiers.yaml`
+* README tool inventory refreshed so it matches what is actually registered.
+
+### 0.2 Add enablement links for new APIs you’ll introduce
+
+Extend `core/api_enablement.py` with API IDs and enablement links for:
+
+* `keep.googleapis.com` (Google Keep API) ([Google for Developers][1])
+* `people.googleapis.com` (People API) ([Google for Developers][2])
+* `meet.googleapis.com` (Google Meet API) ([Google for Developers][3])
+* `admin.googleapis.com` (Admin SDK: Directory + Reports) ([Google for Developers][4])
+
+---
+
+## Changes Implemented
+
+### Phase 0
+
+#### 0.1 Fix tier config gaps
+- Updated `core/tool_tiers.yaml` to include missing Gmail and Sheets tools.
+    - Gmail: Added `list_gmail_filters` to core tier; `create_gmail_filter`, `delete_gmail_filter` to extended tier.
+    - Sheets: Added `format_sheet_range` to core tier; `add_conditional_formatting`, `update_conditional_formatting`, `delete_conditional_formatting` to extended tier.
+
+#### 0.2 Add enablement links for new APIs
+- Updated `core/api_enablement.py` with enablement links and service mappings for:
+    - Google Keep (`keep.googleapis.com`)
+    - Google People (`people.googleapis.com`)
+    - Google Meet (`meet.googleapis.com`)
+    - Google Admin SDK (`admin.googleapis.com`)
