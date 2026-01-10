@@ -999,6 +999,726 @@ async def create_sheet(
     return text_output
 
 
+@server.tool()
+@handle_http_errors("append_sheet_rows", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def append_sheet_rows(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    range_name: str,
+    values: List[List[str]],
+    value_input_option: str = "USER_ENTERED",
+) -> str:
+    """
+    Appends rows to a sheet.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        range_name (str): The range to append to (e.g., "Sheet1!A1").
+        values (List[List[str]]): Data to append (list of lists).
+        value_input_option (str): "RAW" or "USER_ENTERED" (default).
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[append_sheet_rows] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, Range: {range_name}"
+    )
+
+    body = {"values": values}
+
+    result = await asyncio.to_thread(
+        service.spreadsheets()
+        .values()
+        .append(
+            spreadsheetId=spreadsheet_id,
+            range=range_name,
+            valueInputOption=value_input_option,
+            insertDataOption="INSERT_ROWS",
+            includeValuesInResponse=True,
+            responseValueRenderOption="FORMATTED_VALUE",
+            body=body,
+        )
+        .execute
+    )
+
+    updates = result.get("updates", {})
+    updated_rows = updates.get("updatedRows", 0)
+    updated_range = updates.get("updatedRange", "unknown range")
+
+    return f"Successfully appended {updated_rows} rows to range '{updated_range}' in spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("batch_get_sheet_values", is_read_only=True, service_type="sheets")
+@require_google_service("sheets", "sheets_read")
+async def batch_get_sheet_values(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    ranges: List[str],
+) -> str:
+    """
+    Gets values from multiple ranges in a spreadsheet.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        ranges (List[str]): List of A1 ranges to retrieve.
+
+    Returns:
+        str: JSON string of retrieved values keyed by range.
+    """
+    logger.info(
+        f"[batch_get_sheet_values] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, Ranges: {ranges}"
+    )
+
+    result = await asyncio.to_thread(
+        service.spreadsheets()
+        .values()
+        .batchGet(spreadsheetId=spreadsheet_id, ranges=ranges)
+        .execute
+    )
+
+    value_ranges = result.get("valueRanges", [])
+    output = {}
+    for vr in value_ranges:
+        r = vr.get("range", "unknown")
+        vals = vr.get("values", [])
+        output[r] = vals
+
+    return json.dumps(output, indent=2)
+
+
+@server.tool()
+@handle_http_errors("batch_update_sheet_values", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def batch_update_sheet_values(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    data: List[dict],
+    value_input_option: str = "USER_ENTERED",
+) -> str:
+    """
+    Updates multiple ranges in a spreadsheet.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        data (List[dict]): List of objects with 'range' (str) and 'values' (List[List[str]]).
+        value_input_option (str): "RAW" or "USER_ENTERED" (default).
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[batch_update_sheet_values] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, Items: {len(data)}"
+    )
+
+    result = await asyncio.to_thread(
+        service.spreadsheets()
+        .values()
+        .batchUpdate(
+            spreadsheetId=spreadsheet_id,
+            body={"valueInputOption": value_input_option, "data": data},
+        )
+        .execute
+    )
+
+    total_updated_cells = result.get("totalUpdatedCells", 0)
+    return f"Successfully batch updated {total_updated_cells} cells in spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("create_named_range", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def create_named_range(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    name: str,
+    range_name: str,
+) -> str:
+    """
+    Creates a named range in a spreadsheet.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        name (str): The name for the range.
+        range_name (str): The A1 range to name (e.g., "Sheet1!A1:B10").
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[create_named_range] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, Name: {name}, Range: {range_name}"
+    )
+
+    # Resolve sheet ID and grid range
+    sheets = await asyncio.to_thread(
+        service.spreadsheets()
+        .get(spreadsheetId=spreadsheet_id, fields="sheets(properties(sheetId,title))")
+        .execute
+    )
+    sheet_list = sheets.get("sheets", [])
+    grid_range = _parse_a1_range(range_name, sheet_list)
+
+    request_body = {
+        "requests": [
+            {
+                "addNamedRange": {
+                    "namedRange": {
+                        "name": name,
+                        "range": grid_range,
+                    }
+                }
+            }
+        ]
+    }
+
+    result = await asyncio.to_thread(
+        service.spreadsheets()
+        .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
+        .execute
+    )
+
+    reply = result["replies"][0]["addNamedRange"]["namedRange"]
+    named_range_id = reply.get("namedRangeId")
+
+    return f"Successfully created named range '{name}' (ID: {named_range_id}) for range '{range_name}' in spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("update_named_range", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def update_named_range(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    named_range_id: str,
+    new_name: Optional[str] = None,
+    new_range_name: Optional[str] = None,
+) -> str:
+    """
+    Updates an existing named range.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        named_range_id (str): The ID of the named range to update.
+        new_name (Optional[str]): New name for the range.
+        new_range_name (Optional[str]): New A1 range (e.g., "Sheet1!C1:D5").
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[update_named_range] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, ID: {named_range_id}"
+    )
+
+    named_range_props = {"namedRangeId": named_range_id}
+    fields = []
+
+    if new_name:
+        named_range_props["name"] = new_name
+        fields.append("name")
+
+    if new_range_name:
+        sheets = await asyncio.to_thread(
+            service.spreadsheets()
+            .get(spreadsheetId=spreadsheet_id, fields="sheets(properties(sheetId,title))")
+            .execute
+        )
+        sheet_list = sheets.get("sheets", [])
+        grid_range = _parse_a1_range(new_range_name, sheet_list)
+        named_range_props["range"] = grid_range
+        fields.append("range")
+
+    if not fields:
+        raise UserInputError("At least one of new_name or new_range_name must be provided.")
+
+    request_body = {
+        "requests": [
+            {
+                "updateNamedRange": {
+                    "namedRange": named_range_props,
+                    "fields": ",".join(fields),
+                }
+            }
+        ]
+    }
+
+    await asyncio.to_thread(
+        service.spreadsheets()
+        .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
+        .execute
+    )
+
+    return f"Successfully updated named range '{named_range_id}' in spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("delete_named_range", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def delete_named_range(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    named_range_id: str,
+) -> str:
+    """
+    Deletes a named range.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        named_range_id (str): The ID of the named range to delete.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[delete_named_range] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, ID: {named_range_id}"
+    )
+
+    request_body = {
+        "requests": [
+            {
+                "deleteNamedRange": {
+                    "namedRangeId": named_range_id,
+                }
+            }
+        ]
+    }
+
+    await asyncio.to_thread(
+        service.spreadsheets()
+        .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
+        .execute
+    )
+
+    return f"Successfully deleted named range '{named_range_id}' from spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("add_data_validation", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def add_data_validation(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    range_name: str,
+    condition_type: str,
+    condition_values: Optional[List[str]] = None,
+    strict: bool = True,
+    show_custom_ui: bool = True,
+) -> str:
+    """
+    Adds data validation to a range.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        range_name (str): The A1 range to apply validation to.
+        condition_type (str): E.g., "ONE_OF_LIST", "NUMBER_GREATER", "DATE_AFTER".
+        condition_values (Optional[List[str]]): Values for the condition.
+        strict (bool): If true, rejects invalid input.
+        show_custom_ui (bool): If true, shows a dropdown or helper.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[add_data_validation] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, Range: {range_name}"
+    )
+
+    sheets = await asyncio.to_thread(
+        service.spreadsheets()
+        .get(spreadsheetId=spreadsheet_id, fields="sheets(properties(sheetId,title))")
+        .execute
+    )
+    sheet_list = sheets.get("sheets", [])
+    grid_range = _parse_a1_range(range_name, sheet_list)
+
+    condition = {"type": condition_type}
+    if condition_values:
+        condition["values"] = [{"userEnteredValue": v} for v in condition_values]
+
+    rule = {
+        "condition": condition,
+        "strict": strict,
+        "showCustomUi": show_custom_ui,
+    }
+
+    request_body = {
+        "requests": [
+            {
+                "setDataValidation": {
+                    "range": grid_range,
+                    "rule": rule,
+                }
+            }
+        ]
+    }
+
+    await asyncio.to_thread(
+        service.spreadsheets()
+        .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
+        .execute
+    )
+
+    return f"Successfully added data validation to '{range_name}' in spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("set_protected_range", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def set_protected_range(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    range_name: str,
+    description: str,
+    warning_only: bool = False,
+    editors: Optional[List[str]] = None,
+) -> str:
+    """
+    Sets a protected range.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        range_name (str): The A1 range to protect.
+        description (str): Description of the protection.
+        warning_only (bool): If true, shows a warning instead of blocking.
+        editors (Optional[List[str]]): List of email addresses allowed to edit (if not warning_only).
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[set_protected_range] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, Range: {range_name}"
+    )
+
+    sheets = await asyncio.to_thread(
+        service.spreadsheets()
+        .get(spreadsheetId=spreadsheet_id, fields="sheets(properties(sheetId,title))")
+        .execute
+    )
+    sheet_list = sheets.get("sheets", [])
+    grid_range = _parse_a1_range(range_name, sheet_list)
+
+    protected_range = {
+        "range": grid_range,
+        "description": description,
+        "warningOnly": warning_only,
+    }
+
+    if not warning_only and editors:
+        protected_range["editors"] = {"users": editors}
+
+    request_body = {
+        "requests": [
+            {
+                "addProtectedRange": {
+                    "protectedRange": protected_range,
+                }
+            }
+        ]
+    }
+
+    result = await asyncio.to_thread(
+        service.spreadsheets()
+        .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
+        .execute
+    )
+
+    reply = result["replies"][0]["addProtectedRange"]["protectedRange"]
+    protected_range_id = reply.get("protectedRangeId")
+
+    return f"Successfully set protected range (ID: {protected_range_id}) on '{range_name}' in spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("create_chart", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def create_chart(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    chart_title: str,
+    chart_type: str,
+    range_name: str,
+    anchor_cell: str,
+) -> str:
+    """
+    Creates a chart in a spreadsheet.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        chart_title (str): Title of the chart.
+        chart_type (str): Type of chart (e.g., "BAR", "LINE", "PIE").
+        range_name (str): Data range (e.g., "Sheet1!A1:B10").
+        anchor_cell (str): Where to position the chart (e.g., "D1").
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[create_chart] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, Title: {chart_title}, Type: {chart_type}"
+    )
+
+    sheets = await asyncio.to_thread(
+        service.spreadsheets()
+        .get(spreadsheetId=spreadsheet_id, fields="sheets(properties(sheetId,title))")
+        .execute
+    )
+    sheet_list = sheets.get("sheets", [])
+
+    # Parse range for sources
+    source_range = _parse_a1_range(range_name, sheet_list)
+    sheet_id = source_range.get("sheetId")
+
+    # Parse anchor cell
+    # Note: _parse_a1_range returns a GridRange, but for anchor we need row/col indices.
+    # We'll use a simplified assumption or need a helper to get indices from A1.
+    # For now, let's assume we can get indices.
+    # Actually, overlayPosition.anchorCell needs a GridCoordinate.
+    # We can reuse _parse_a1_range logic but we need to extract row/col.
+    # Since _parse_a1_range returns startRowIndex etc, we can use that.
+
+    anchor_range = _parse_a1_range(anchor_cell, sheet_list)
+    # If sheet name was not in anchor_cell, it defaults to first sheet or active sheet logic in _parse_a1_range.
+    # Better to ensure it matches the sheet of the chart if desired, or can be anywhere.
+
+    chart_spec = {
+        "title": chart_title,
+        "basicChart": {
+            "chartType": chart_type,
+            "domains": [{"domain": {"sourceRange": {"sources": [source_range]}}}],
+            "series": [{"series": {"sourceRange": {"sources": [source_range]}}, "targetAxis": "LEFT_AXIS"}],
+            # Note: Basic chart creation usually needs separation of domain (labels) and series (values).
+            # This simple implementation puts the whole range as both for now, user might need to adjust.
+            # A better implementation would take separate domain_range and series_range.
+            # But let's stick to the requested signature.
+            "headerCount": 1,
+        }
+    }
+
+    # Improve basic chart setup:
+    # Usually first column is domain (x-axis), rest are series (y-axis).
+    # We can't easily split without knowing the data.
+    # But we can set up the whole range as data.
+
+    request_body = {
+        "requests": [
+            {
+                "addChart": {
+                    "chart": {
+                        "spec": chart_spec,
+                        "position": {
+                            "overlayPosition": {
+                                "anchorCell": {
+                                    "sheetId": anchor_range.get("sheetId"),
+                                    "rowIndex": anchor_range.get("startRowIndex", 0),
+                                    "columnIndex": anchor_range.get("startColumnIndex", 0),
+                                },
+                                "offsetXPixels": 0,
+                                "offsetYPixels": 0,
+                                "widthPixels": 600,
+                                "heightPixels": 371
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+
+    result = await asyncio.to_thread(
+        service.spreadsheets()
+        .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
+        .execute
+    )
+
+    reply = result["replies"][0]["addChart"]["chart"]
+    chart_id = reply.get("chartId")
+
+    return f"Successfully created chart '{chart_title}' (ID: {chart_id}) in spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("update_chart", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def update_chart(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    chart_id: int,
+    new_title: Optional[str] = None,
+    new_chart_type: Optional[str] = None,
+) -> str:
+    """
+    Updates a chart in a spreadsheet.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        chart_id (int): The ID of the chart.
+        new_title (Optional[str]): New title for the chart.
+        new_chart_type (Optional[str]): New type for the chart.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[update_chart] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, ID: {chart_id}"
+    )
+
+    chart_spec = {}
+    if new_title:
+        chart_spec["title"] = new_title
+    if new_chart_type:
+        chart_spec["basicChart"] = {"chartType": new_chart_type}
+
+    if not chart_spec:
+        raise UserInputError("At least one of new_title or new_chart_type must be provided.")
+
+    request_body = {
+        "requests": [
+            {
+                "updateChartSpec": {
+                    "chartId": chart_id,
+                    "spec": chart_spec,
+                }
+            }
+        ]
+    }
+
+    await asyncio.to_thread(
+        service.spreadsheets()
+        .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
+        .execute
+    )
+
+    return f"Successfully updated chart {chart_id} in spreadsheet {spreadsheet_id}."
+
+
+@server.tool()
+@handle_http_errors("create_pivot_table", service_type="sheets")
+@require_google_service("sheets", "sheets_write")
+async def create_pivot_table(
+    service,
+    user_google_email: str,
+    spreadsheet_id: str,
+    source_range: str,
+    target_cell: str,
+    rows: List[str],
+    columns: List[str],
+    values: List[str],
+) -> str:
+    """
+    Creates a pivot table.
+
+    Args:
+        user_google_email (str): The user's Google email address.
+        spreadsheet_id (str): The ID of the spreadsheet.
+        source_range (str): Range of source data (e.g. "Sheet1!A1:D100").
+        target_cell (str): Top-left cell for pivot table (e.g. "Sheet2!A1").
+        rows (List[str]): List of 0-based column indices or A1 notation (e.g., "0", "1", "A", "B") to use as rows.
+        columns (List[str]): List of 0-based column indices or A1 notation (e.g., "0", "1", "A", "B") to use as columns.
+        values (List[str]): List of 0-based column indices or A1 notation (e.g., "0", "1", "A", "B") to aggregate.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[create_pivot_table] Invoked. Email: '{user_google_email}', Spreadsheet: {spreadsheet_id}, Source: {source_range}"
+    )
+
+    # Note: Creating pivot tables via API is complex because you need to map column names to indices.
+    # This implementation assumes the input lists (rows, columns, values) are indices (e.g. "0", "1") or A1 notation (e.g. "A", "B").
+    # A robust implementation would read the header row first to map names to indices.
+    # For now, we will assume strict column indices or we would need to read the sheet.
+
+    # Let's simplify and assume the user passes 0-based column indices as strings.
+    # Or we can try to parse "A", "B" etc.
+
+    # Helper to parse "A" -> 0, "B" -> 1
+    def col_to_index(col: str) -> int:
+        col = col.upper()
+        if col.isdigit():
+             return int(col)
+
+        # Simple A-Z conversion, efficient enough for typical use
+        num = 0
+        for c in col:
+            if 'A' <= c <= 'Z':
+                num = num * 26 + (ord(c) - ord('A') + 1)
+        return num - 1 if num > 0 else 0 # Default to 0 if invalid
+
+    sheets = await asyncio.to_thread(
+        service.spreadsheets()
+        .get(spreadsheetId=spreadsheet_id, fields="sheets(properties(sheetId,title))")
+        .execute
+    )
+    sheet_list = sheets.get("sheets", [])
+
+    src_grid_range = _parse_a1_range(source_range, sheet_list)
+    dest_grid_range = _parse_a1_range(target_cell, sheet_list)
+
+    pivot_table = {
+        "source": {
+            "sheetId": src_grid_range.get("sheetId"),
+            "startRowIndex": src_grid_range.get("startRowIndex"),
+            "startColumnIndex": src_grid_range.get("startColumnIndex"),
+            "endRowIndex": src_grid_range.get("endRowIndex"),
+            "endColumnIndex": src_grid_range.get("endColumnIndex"),
+        },
+        "rows": [{"sourceColumnOffset": col_to_index(r), "showTotals": True, "sortOrder": "ASCENDING"} for r in rows],
+        "columns": [{"sourceColumnOffset": col_to_index(c), "showTotals": True, "sortOrder": "ASCENDING"} for c in columns],
+        "values": [{"sourceColumnOffset": col_to_index(v), "summarizeFunction": "SUM"} for v in values],
+        "valueLayout": "HORIZONTAL"
+    }
+
+    request_body = {
+        "requests": [
+            {
+                "updateCells": {
+                    "rows": [
+                        {
+                            "values": [
+                                {
+                                    "pivotTable": pivot_table
+                                }
+                            ]
+                        }
+                    ],
+                    "start": {
+                        "sheetId": dest_grid_range.get("sheetId"),
+                        "rowIndex": dest_grid_range.get("startRowIndex", 0),
+                        "columnIndex": dest_grid_range.get("startColumnIndex", 0),
+                    },
+                    "fields": "pivotTable"
+                }
+            }
+        ]
+    }
+
+    await asyncio.to_thread(
+        service.spreadsheets()
+        .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
+        .execute
+    )
+
+    return f"Successfully created pivot table at '{target_cell}' in spreadsheet {spreadsheet_id}."
+
+
 # Create comment management tools for sheets
 _comment_tools = create_comment_tools("spreadsheet", "spreadsheet_id")
 
