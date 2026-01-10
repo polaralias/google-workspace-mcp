@@ -15,6 +15,10 @@ gmail:
     - list_gmail_labels
     - manage_gmail_label
     - draft_gmail_message
+    - archive_gmail_message
+    - trash_gmail_message
+    - mark_gmail_read_unread
+    - star_unstar_gmail_message
 
   complete:
     - get_gmail_threads_content_batch
