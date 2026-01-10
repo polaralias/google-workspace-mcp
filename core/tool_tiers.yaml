@@ -73,7 +73,9 @@ docs:
     - create_doc
     - modify_doc_text
   extended:
-    - export_doc_to_pdf
+    - export_doc
+    - apply_doc_paragraph_style
+    - apply_doc_text_style
     - search_docs
     - find_and_replace_doc
     - list_docs_in_folder
