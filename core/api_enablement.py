@@ -13,6 +13,10 @@ API_ENABLEMENT_LINKS: Dict[str, str] = {
     "tasks.googleapis.com": "https://console.cloud.google.com/flows/enableapi?apiid=tasks.googleapis.com",
     "chat.googleapis.com": "https://console.cloud.google.com/flows/enableapi?apiid=chat.googleapis.com",
     "customsearch.googleapis.com": "https://console.cloud.google.com/flows/enableapi?apiid=customsearch.googleapis.com",
+    "keep.googleapis.com": "https://console.cloud.google.com/flows/enableapi?apiid=keep.googleapis.com",
+    "people.googleapis.com": "https://console.cloud.google.com/flows/enableapi?apiid=people.googleapis.com",
+    "meet.googleapis.com": "https://console.cloud.google.com/flows/enableapi?apiid=meet.googleapis.com",
+    "admin.googleapis.com": "https://console.cloud.google.com/flows/enableapi?apiid=admin.googleapis.com",
 }
 
 
@@ -27,6 +31,10 @@ SERVICE_NAME_TO_API: Dict[str, str] = {
     "Google Tasks": "tasks.googleapis.com",
     "Google Chat": "chat.googleapis.com",
     "Google Custom Search": "customsearch.googleapis.com",
+    "Google Keep": "keep.googleapis.com",
+    "Google People": "people.googleapis.com",
+    "Google Meet": "meet.googleapis.com",
+    "Google Admin SDK": "admin.googleapis.com",
 }
 
 
@@ -42,6 +50,12 @@ INTERNAL_SERVICE_TO_API: Dict[str, str] = {
     "chat": "chat.googleapis.com",
     "customsearch": "customsearch.googleapis.com",
     "search": "customsearch.googleapis.com",
+    "keep": "keep.googleapis.com",
+    "people": "people.googleapis.com",
+    "meet": "meet.googleapis.com",
+    "admin": "admin.googleapis.com",
+    "admin_directory": "admin.googleapis.com",
+    "admin_reports": "admin.googleapis.com",
 }
 
 
