@@ -55,3 +55,13 @@ Extend `core/api_enablement.py` with API IDs and enablement links for:
 - Updated `auth/service_decorator.py` to support `keep` service configuration and scopes.
 - Registered `keep` tool in `main.py` (imports, icons, CLI arguments).
 - Added `keep` tool tiers to `core/tool_tiers.yaml`.
+
+### Phase 2: Expand existing apps (deepen function coverage)
+
+#### 2.1 Gmail
+- Added message lifecycle helpers to `gmail/gmail_tools.py`:
+    - `archive_gmail_message`
+    - `trash_gmail_message`
+    - `mark_gmail_read_unread`
+    - `star_unstar_gmail_message`
+- Updated `core/tool_tiers.yaml` to include these new tools in the `extended` tier for Gmail.

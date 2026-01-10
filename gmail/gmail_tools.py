@@ -1721,3 +1721,142 @@ async def batch_modify_gmail_message_labels(
         actions.append(f"Removed labels: {', '.join(remove_label_ids)}")
 
     return f"Labels updated for {len(message_ids)} messages: {'; '.join(actions)}"
+
+
+@server.tool()
+@handle_http_errors("archive_gmail_message", service_type="gmail")
+@require_google_service("gmail", GMAIL_MODIFY_SCOPE)
+async def archive_gmail_message(
+    service,
+    user_google_email: str,
+    message_id: str = Field(..., description="The ID of the message to archive."),
+) -> str:
+    """
+    Archives a Gmail message by removing the 'INBOX' label.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        message_id (str): The ID of the message to archive.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[archive_gmail_message] Invoked. Email: '{user_google_email}', Message ID: '{message_id}'"
+    )
+
+    body = {"removeLabelIds": ["INBOX"]}
+    await asyncio.to_thread(
+        service.users().messages().modify(userId="me", id=message_id, body=body).execute
+    )
+    return f"Message {message_id} archived successfully (removed from Inbox)."
+
+
+@server.tool()
+@handle_http_errors("trash_gmail_message", service_type="gmail")
+@require_google_service("gmail", GMAIL_MODIFY_SCOPE)
+async def trash_gmail_message(
+    service,
+    user_google_email: str,
+    message_id: str = Field(
+        ..., description="The ID of the message to move to trash."
+    ),
+) -> str:
+    """
+    Moves a Gmail message to the trash.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        message_id (str): The ID of the message to trash.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[trash_gmail_message] Invoked. Email: '{user_google_email}', Message ID: '{message_id}'"
+    )
+
+    await asyncio.to_thread(
+        service.users().messages().trash(userId="me", id=message_id).execute
+    )
+    return f"Message {message_id} moved to trash successfully."
+
+
+@server.tool()
+@handle_http_errors("mark_gmail_read_unread", service_type="gmail")
+@require_google_service("gmail", GMAIL_MODIFY_SCOPE)
+async def mark_gmail_read_unread(
+    service,
+    user_google_email: str,
+    message_id: str = Field(..., description="The ID of the message to modify."),
+    is_read: bool = Field(
+        ...,
+        description="True to mark as read (remove UNREAD label), False to mark as unread (add UNREAD label).",
+    ),
+) -> str:
+    """
+    Marks a Gmail message as read or unread.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        message_id (str): The ID of the message.
+        is_read (bool): True to mark as read, False to mark as unread.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[mark_gmail_read_unread] Invoked. Email: '{user_google_email}', Message ID: '{message_id}', is_read: {is_read}"
+    )
+
+    if is_read:
+        body = {"removeLabelIds": ["UNREAD"]}
+        action_desc = "read"
+    else:
+        body = {"addLabelIds": ["UNREAD"]}
+        action_desc = "unread"
+
+    await asyncio.to_thread(
+        service.users().messages().modify(userId="me", id=message_id, body=body).execute
+    )
+    return f"Message {message_id} marked as {action_desc}."
+
+
+@server.tool()
+@handle_http_errors("star_unstar_gmail_message", service_type="gmail")
+@require_google_service("gmail", GMAIL_MODIFY_SCOPE)
+async def star_unstar_gmail_message(
+    service,
+    user_google_email: str,
+    message_id: str = Field(..., description="The ID of the message to modify."),
+    is_starred: bool = Field(
+        ...,
+        description="True to star (add STARRED label), False to unstar (remove STARRED label).",
+    ),
+) -> str:
+    """
+    Stars or unstars a Gmail message.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        message_id (str): The ID of the message.
+        is_starred (bool): True to star, False to unstar.
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[star_unstar_gmail_message] Invoked. Email: '{user_google_email}', Message ID: '{message_id}', is_starred: {is_starred}"
+    )
+
+    if is_starred:
+        body = {"addLabelIds": ["STARRED"]}
+        action_desc = "starred"
+    else:
+        body = {"removeLabelIds": ["STARRED"]}
+        action_desc = "unstarred"
+
+    await asyncio.to_thread(
+        service.users().messages().modify(userId="me", id=message_id, body=body).execute
+    )
+    return f"Message {message_id} {action_desc}."
