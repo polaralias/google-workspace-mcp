@@ -41,6 +41,8 @@ from auth.scopes import (
     SLIDES_READONLY_SCOPE,
     TASKS_SCOPE,
     TASKS_READONLY_SCOPE,
+    KEEP_SCOPE,
+    KEEP_READONLY_SCOPE,
     CUSTOM_SEARCH_SCOPE,
 )
 
@@ -384,6 +386,7 @@ SERVICE_CONFIGS = {
     "forms": {"service": "forms", "version": "v1"},
     "slides": {"service": "slides", "version": "v1"},
     "tasks": {"service": "tasks", "version": "v1"},
+    "keep": {"service": "keep", "version": "v1"},
     "customsearch": {"service": "customsearch", "version": "v1"},
 }
 
@@ -423,6 +426,9 @@ SCOPE_GROUPS = {
     # Tasks scopes
     "tasks": TASKS_SCOPE,
     "tasks_read": TASKS_READONLY_SCOPE,
+    # Keep scopes
+    "keep": KEEP_SCOPE,
+    "keep_read": KEEP_READONLY_SCOPE,
     # Custom Search scope
     "customsearch": CUSTOM_SEARCH_SCOPE,
 }
