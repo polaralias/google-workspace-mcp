@@ -6,10 +6,11 @@ This module provides MCP tools for interacting with Google Slides API.
 
 import logging
 import asyncio
-from typing import List, Dict, Any
+import io
+from typing import List, Dict, Any, Optional
+from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 
-
-from auth.service_decorator import require_google_service
+from auth.service_decorator import require_google_service, require_multiple_services
 from core.server import server
 from core.utils import handle_http_errors
 from core.comments import create_comment_tools
@@ -317,6 +318,421 @@ async def get_page_thumbnail(
 You can view or download the thumbnail using the provided URL."""
 
     logger.info(f"Thumbnail generated successfully for {user_google_email}")
+    return confirmation_message
+
+
+@server.tool()
+@handle_http_errors("create_slide", service_type="slides")
+@require_google_service("slides", "slides")
+async def create_slide(
+    service,
+    user_google_email: str,
+    presentation_id: str,
+    layout: str = "TITLE_AND_BODY",
+    insertion_index: Optional[int] = None,
+) -> str:
+    """
+    Create a new slide in a presentation with a specified layout.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        presentation_id (str): The ID of the presentation.
+        layout (str): Predefined layout for the slide (e.g., 'TITLE_AND_BODY', 'TITLE_ONLY', 'BLANK'). Defaults to 'TITLE_AND_BODY'.
+        insertion_index (Optional[int]): Zero-based index where the slide should be inserted. If None, appends to the end.
+
+    Returns:
+        str: Confirmation message with the new slide ID.
+    """
+    logger.info(
+        f"[create_slide] Invoked. Email: '{user_google_email}', Presentation: '{presentation_id}', Layout: '{layout}'"
+    )
+
+    request: Dict[str, Any] = {
+        "createSlide": {
+            "slideLayoutReference": {"predefinedLayout": layout},
+        }
+    }
+
+    if insertion_index is not None:
+        request["createSlide"]["insertionIndex"] = insertion_index
+
+    result = await asyncio.to_thread(
+        service.presentations()
+        .batchUpdate(presentationId=presentation_id, body={"requests": [request]})
+        .execute
+    )
+
+    slide_id = (
+        result.get("replies", [{}])[0].get("createSlide", {}).get("objectId", "Unknown")
+    )
+    link = f"https://docs.google.com/presentation/d/{presentation_id}/edit#slide=id.{slide_id}"
+
+    confirmation_message = f"""Slide Created for {user_google_email}:
+- Presentation ID: {presentation_id}
+- New Slide ID: {slide_id}
+- Layout: {layout}
+- Link: {link}"""
+
+    logger.info(f"Slide created successfully for {user_google_email}. ID: {slide_id}")
+    return confirmation_message
+
+
+@server.tool()
+@handle_http_errors("add_textbox", service_type="slides")
+@require_google_service("slides", "slides")
+async def add_textbox(
+    service,
+    user_google_email: str,
+    presentation_id: str,
+    page_id: str,
+    text: str,
+    x: float,
+    y: float,
+    width: float,
+    height: float,
+) -> str:
+    """
+    Add a textbox with text to a specific slide.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        presentation_id (str): The ID of the presentation.
+        page_id (str): The ID of the slide where the textbox will be added.
+        text (str): The text content of the textbox.
+        x (float): The X coordinate (in points) for the top-left corner.
+        y (float): The Y coordinate (in points) for the top-left corner.
+        width (float): The width of the textbox (in points).
+        height (float): The height of the textbox (in points).
+
+    Returns:
+        str: Confirmation message with the new textbox ID.
+    """
+    logger.info(
+        f"[add_textbox] Invoked. Email: '{user_google_email}', Presentation: '{presentation_id}', Page: '{page_id}'"
+    )
+
+    # We need a random object ID for the createShape request if we want to refer to it immediately,
+    # but normally the API generates one. However, to insert text immediately, we need the ID.
+    # The API documentation says we can provide an ID, or let it generate.
+    # If we let it generate, we can't insert text in the same batch unless we use the return value,
+    # but batchUpdate takes a list of requests.
+    # Wait, createShape returns the ID. But we want to do it in one go if possible?
+    # Actually, we can just generate a client-side ID or rely on the fact that we can't do it in one batch
+    # unless we specify the ID.
+    # Let's generate a simplified random ID or just use a standard way if available.
+    # Python's uuid can be used, but might be too long/complex.
+    # Actually, many examples just use a generated string.
+    import uuid
+
+    element_id = f"textbox_{uuid.uuid4().hex}"
+
+    requests = [
+        {
+            "createShape": {
+                "objectId": element_id,
+                "shapeType": "TEXT_BOX",
+                "elementProperties": {
+                    "pageObjectId": page_id,
+                    "size": {"width": {"magnitude": width, "unit": "PT"}, "height": {"magnitude": height, "unit": "PT"}},
+                    "transform": {
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "translateX": x,
+                        "translateY": y,
+                        "unit": "PT",
+                    },
+                },
+            }
+        },
+        {"insertText": {"objectId": element_id, "text": text}},
+    ]
+
+    await asyncio.to_thread(
+        service.presentations()
+        .batchUpdate(presentationId=presentation_id, body={"requests": requests})
+        .execute
+    )
+
+    confirmation_message = f"""Textbox Added for {user_google_email}:
+- Presentation ID: {presentation_id}
+- Page ID: {page_id}
+- Textbox ID: {element_id}
+- Text: "{text}"
+- Position: ({x}, {y})
+- Size: {width}x{height}"""
+
+    logger.info(f"Textbox added successfully for {user_google_email}. ID: {element_id}")
+    return confirmation_message
+
+
+@server.tool()
+@handle_http_errors("set_text_style", service_type="slides")
+@require_google_service("slides", "slides")
+async def set_text_style(
+    service,
+    user_google_email: str,
+    presentation_id: str,
+    object_id: str,
+    style_object: Dict[str, Any],
+) -> str:
+    """
+    Update the style of text within a shape or table cell.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        presentation_id (str): The ID of the presentation.
+        object_id (str): The object ID of the shape or table.
+        style_object (Dict[str, Any]): A dictionary representing the TextStyle to apply.
+            Example: {"bold": True, "fontSize": {"magnitude": 14, "unit": "PT"}, "foregroundColor": {"opaqueColor": {"rgbColor": {"red": 1.0, "green": 0.0, "blue": 0.0}}}}
+
+    Returns:
+        str: Confirmation message.
+    """
+    logger.info(
+        f"[set_text_style] Invoked. Email: '{user_google_email}', Presentation: '{presentation_id}', Object: '{object_id}'"
+    )
+
+    # fields mask is needed. We can infer it from the keys of style_object.
+    fields = ",".join(style_object.keys())
+
+    request = {
+        "updateTextStyle": {
+            "objectId": object_id,
+            "style": style_object,
+            "fields": fields,
+        }
+    }
+
+    await asyncio.to_thread(
+        service.presentations()
+        .batchUpdate(presentationId=presentation_id, body={"requests": [request]})
+        .execute
+    )
+
+    confirmation_message = f"""Text Style Updated for {user_google_email}:
+- Presentation ID: {presentation_id}
+- Object ID: {object_id}
+- Fields Updated: {fields}"""
+
+    logger.info(
+        f"Text style updated successfully for {user_google_email}. Object: {object_id}"
+    )
+    return confirmation_message
+
+
+@server.tool()
+@handle_http_errors("replace_text_everywhere", service_type="slides")
+@require_google_service("slides", "slides")
+async def replace_text_everywhere(
+    service,
+    user_google_email: str,
+    presentation_id: str,
+    find_text: str,
+    replace_text: str,
+    match_case: bool = False,
+) -> str:
+    """
+    Replace all instances of specified text throughout the presentation.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        presentation_id (str): The ID of the presentation.
+        find_text (str): The text to search for.
+        replace_text (str): The text to replace it with.
+        match_case (bool): Whether to match case. Defaults to False.
+
+    Returns:
+        str: Confirmation message with number of occurrences changed.
+    """
+    logger.info(
+        f"[replace_text_everywhere] Invoked. Email: '{user_google_email}', Presentation: '{presentation_id}', Find: '{find_text}'"
+    )
+
+    request = {
+        "replaceAllText": {
+            "containsText": {"text": find_text, "matchCase": match_case},
+            "replaceText": replace_text,
+        }
+    }
+
+    result = await asyncio.to_thread(
+        service.presentations()
+        .batchUpdate(presentationId=presentation_id, body={"requests": [request]})
+        .execute
+    )
+
+    occurrences_changed = (
+        result.get("replies", [{}])[0]
+        .get("replaceAllText", {})
+        .get("occurrencesChanged", 0)
+    )
+
+    confirmation_message = f"""Text Replacement Complete for {user_google_email}:
+- Presentation ID: {presentation_id}
+- Occurrences Changed: {occurrences_changed}
+- Find: "{find_text}"
+- Replace: "{replace_text}" """
+
+    logger.info(
+        f"Replaced {occurrences_changed} occurrences for {user_google_email} in presentation {presentation_id}"
+    )
+    return confirmation_message
+
+
+@server.tool()
+@handle_http_errors("insert_image_from_url", service_type="slides")
+@require_google_service("slides", "slides")
+async def insert_image_from_url(
+    service,
+    user_google_email: str,
+    presentation_id: str,
+    page_id: str,
+    image_url: str,
+    x: float,
+    y: float,
+    width: float,
+    height: float,
+) -> str:
+    """
+    Insert an image from a URL onto a slide.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        presentation_id (str): The ID of the presentation.
+        page_id (str): The ID of the slide where the image will be added.
+        image_url (str): The public URL of the image.
+        x (float): The X coordinate (in points).
+        y (float): The Y coordinate (in points).
+        width (float): The width (in points).
+        height (float): The height (in points).
+
+    Returns:
+        str: Confirmation message with the new image ID.
+    """
+    logger.info(
+        f"[insert_image_from_url] Invoked. Email: '{user_google_email}', Presentation: '{presentation_id}', Page: '{page_id}', URL: '{image_url}'"
+    )
+
+    import uuid
+
+    element_id = f"image_{uuid.uuid4().hex}"
+
+    request = {
+        "createImage": {
+            "objectId": element_id,
+            "url": image_url,
+            "elementProperties": {
+                "pageObjectId": page_id,
+                "size": {"width": {"magnitude": width, "unit": "PT"}, "height": {"magnitude": height, "unit": "PT"}},
+                "transform": {
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "translateX": x,
+                    "translateY": y,
+                    "unit": "PT",
+                },
+            },
+        }
+    }
+
+    await asyncio.to_thread(
+        service.presentations()
+        .batchUpdate(presentationId=presentation_id, body={"requests": [request]})
+        .execute
+    )
+
+    confirmation_message = f"""Image Inserted for {user_google_email}:
+- Presentation ID: {presentation_id}
+- Page ID: {page_id}
+- Image ID: {element_id}
+- URL: {image_url}
+- Position: ({x}, {y})
+- Size: {width}x{height}"""
+
+    logger.info(f"Image inserted successfully for {user_google_email}. ID: {element_id}")
+    return confirmation_message
+
+
+@server.tool()
+@handle_http_errors("export_presentation_pdf", service_type="drive")
+@require_multiple_services(
+    [
+        {
+            "service_type": "drive",
+            "scopes": "drive_file",
+            "param_name": "drive_service",
+        },
+        {
+            "service_type": "slides",
+            "scopes": "slides_read",
+            "param_name": "slides_service",
+        },
+    ]
+)
+async def export_presentation_pdf(
+    drive_service, slides_service, user_google_email: str, presentation_id: str
+) -> str:
+    """
+    Export a presentation as a PDF and save it to Google Drive.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        presentation_id (str): The ID of the presentation to export.
+
+    Returns:
+        str: Confirmation message with details of the exported file.
+    """
+    logger.info(
+        f"[export_presentation_pdf] Invoked. Email: '{user_google_email}', ID: '{presentation_id}'"
+    )
+
+    # 1. Get presentation details to verify it exists and get the title
+    presentation = await asyncio.to_thread(
+        slides_service.presentations().get(presentationId=presentation_id).execute
+    )
+    title = presentation.get("title", "Untitled Presentation")
+    pdf_filename = f"{title}.pdf"
+
+    # 2. Export the presentation using Drive API
+    request_obj = drive_service.files().export_media(
+        fileId=presentation_id, mimeType="application/pdf"
+    )
+
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request_obj)
+
+    done = False
+    while not done:
+        _, done = await asyncio.to_thread(downloader.next_chunk)
+
+    fh.seek(0)
+
+    # 3. Upload the PDF back to Drive
+    file_metadata = {"name": pdf_filename, "mimeType": "application/pdf"}
+
+    media = MediaIoBaseUpload(fh, mimetype="application/pdf", resumable=True)
+
+    uploaded_file = await asyncio.to_thread(
+        drive_service.files()
+        .create(
+            body=file_metadata,
+            media_body=media,
+            fields="id, webViewLink",
+            supportsAllDrives=True,
+        )
+        .execute
+    )
+
+    file_id = uploaded_file.get("id")
+    web_link = uploaded_file.get("webViewLink")
+
+    confirmation_message = f"""Presentation Exported as PDF for {user_google_email}:
+- Original Presentation ID: {presentation_id}
+- Exported File Name: {pdf_filename}
+- New PDF File ID: {file_id}
+- Link: {web_link}"""
+
+    logger.info(f"Presentation exported successfully for {user_google_email}")
     return confirmation_message
 
 
