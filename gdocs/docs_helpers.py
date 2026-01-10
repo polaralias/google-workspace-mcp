@@ -46,6 +46,7 @@ def build_text_style(
     font_family: str = None,
     text_color: str = None,
     background_color: str = None,
+    link_url: str = None,
 ) -> tuple[Dict[str, Any], list[str]]:
     """
     Build text style object for Google Docs API requests.
@@ -58,6 +59,7 @@ def build_text_style(
         font_family: Font family name
         text_color: Text color as hex string "#RRGGBB"
         background_color: Background (highlight) color as hex string "#RRGGBB"
+        link_url: URL for hyperlink (use "" to remove link)
 
     Returns:
         Tuple of (text_style_dict, list_of_field_names)
@@ -94,6 +96,14 @@ def build_text_style(
         rgb = _normalize_color(background_color, "background_color")
         text_style["backgroundColor"] = {"color": {"rgbColor": rgb}}
         fields.append("backgroundColor")
+
+    if link_url is not None:
+        if link_url:
+            text_style["link"] = {"url": link_url}
+        else:
+            # Empty string means remove the link
+            text_style["link"] = {}
+        fields.append("link")
 
     return text_style, fields
 
@@ -162,6 +172,7 @@ def create_format_text_request(
     font_family: str = None,
     text_color: str = None,
     background_color: str = None,
+    link_url: str = None,
 ) -> Optional[Dict[str, Any]]:
     """
     Create an updateTextStyle request for Google Docs API.
@@ -176,12 +187,20 @@ def create_format_text_request(
         font_family: Font family name
         text_color: Text color as hex string "#RRGGBB"
         background_color: Background (highlight) color as hex string "#RRGGBB"
+        link_url: URL for hyperlink (use "" to remove link)
 
     Returns:
         Dictionary representing the updateTextStyle request, or None if no styles provided
     """
     text_style, fields = build_text_style(
-        bold, italic, underline, font_size, font_family, text_color, background_color
+        bold,
+        italic,
+        underline,
+        font_size,
+        font_family,
+        text_color,
+        background_color,
+        link_url,
     )
 
     if not text_style:
@@ -191,6 +210,47 @@ def create_format_text_request(
         "updateTextStyle": {
             "range": {"startIndex": start_index, "endIndex": end_index},
             "textStyle": text_style,
+            "fields": ",".join(fields),
+        }
+    }
+
+
+def create_update_paragraph_style_request(
+    start_index: int,
+    end_index: int,
+    named_style: str = None,
+    alignment: str = None,
+) -> Optional[Dict[str, Any]]:
+    """
+    Create an updateParagraphStyle request for Google Docs API.
+
+    Args:
+        start_index: Start position
+        end_index: End position
+        named_style: Style name (e.g., 'HEADING_1', 'NORMAL_TEXT')
+        alignment: Text alignment ('START', 'CENTER', 'END', 'JUSTIFIED')
+
+    Returns:
+        Dictionary representing the updateParagraphStyle request, or None if no styles provided
+    """
+    paragraph_style = {}
+    fields = []
+
+    if named_style is not None:
+        paragraph_style["namedStyleType"] = named_style
+        fields.append("namedStyleType")
+
+    if alignment is not None:
+        paragraph_style["alignment"] = alignment
+        fields.append("alignment")
+
+    if not paragraph_style:
+        return None
+
+    return {
+        "updateParagraphStyle": {
+            "range": {"startIndex": start_index, "endIndex": end_index},
+            "paragraphStyle": paragraph_style,
             "fields": ",".join(fields),
         }
     }

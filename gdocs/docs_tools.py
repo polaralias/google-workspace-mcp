@@ -27,6 +27,7 @@ from gdocs.docs_helpers import (
     create_insert_page_break_request,
     create_insert_image_request,
     create_bullet_list_request,
+    create_update_paragraph_style_request,
 )
 
 # Import document structure and table utilities
@@ -348,6 +349,166 @@ async def create_doc(
         f"Successfully created Google Doc '{title}' (ID: {doc_id}) for {user_google_email}. Link: {link}"
     )
     return msg
+
+
+@server.tool()
+@handle_http_errors("apply_doc_paragraph_style", service_type="docs")
+@require_google_service("docs", "docs_write")
+async def apply_doc_paragraph_style(
+    service: Any,
+    user_google_email: str,
+    document_id: str,
+    start_index: int,
+    end_index: int,
+    named_style: str = None,
+    alignment: str = None,
+) -> str:
+    """
+    Applies paragraph styles (headings, alignment) to a range in a Google Doc.
+
+    Args:
+        user_google_email: User's Google email address
+        document_id: ID of the document to update
+        start_index: Start position of range
+        end_index: End position of range
+        named_style: Named style to apply (e.g., 'NORMAL_TEXT', 'HEADING_1', 'HEADING_2', 'TITLE', 'SUBTITLE')
+        alignment: Text alignment ('START', 'CENTER', 'END', 'JUSTIFIED')
+
+    Returns:
+        str: Confirmation message
+    """
+    logger.info(
+        f"[apply_doc_paragraph_style] Doc={document_id}, range={start_index}-{end_index}, style={named_style}, align={alignment}"
+    )
+
+    validator = ValidationManager()
+    is_valid, error_msg = validator.validate_document_id(document_id)
+    if not is_valid:
+        return f"Error: {error_msg}"
+
+    is_valid, error_msg = validator.validate_index_range(start_index, end_index)
+    if not is_valid:
+        return f"Error: {error_msg}"
+
+    request = create_update_paragraph_style_request(
+        start_index, end_index, named_style, alignment
+    )
+    if not request:
+        return "Error: No style parameters provided. Must specify 'named_style' or 'alignment'."
+
+    await asyncio.to_thread(
+        service.documents()
+        .batchUpdate(documentId=document_id, body={"requests": [request]})
+        .execute
+    )
+
+    details = []
+    if named_style:
+        details.append(f"style='{named_style}'")
+    if alignment:
+        details.append(f"alignment='{alignment}'")
+
+    link = f"https://docs.google.com/document/d/{document_id}/edit"
+    return f"Applied paragraph style ({', '.join(details)}) to range {start_index}-{end_index} in document {document_id}. Link: {link}"
+
+
+@server.tool()
+@handle_http_errors("apply_doc_text_style", service_type="docs")
+@require_google_service("docs", "docs_write")
+async def apply_doc_text_style(
+    service: Any,
+    user_google_email: str,
+    document_id: str,
+    start_index: int,
+    end_index: int,
+    bold: bool = None,
+    italic: bool = None,
+    underline: bool = None,
+    font_size: int = None,
+    font_family: str = None,
+    text_color: str = None,
+    background_color: str = None,
+    link_url: str = None,
+) -> str:
+    """
+    Applies text formatting (bold, italic, link, etc.) to a range in a Google Doc.
+
+    Args:
+        user_google_email: User's Google email address
+        document_id: ID of the document to update
+        start_index: Start position of range
+        end_index: End position of range
+        bold: Apply bold
+        italic: Apply italic
+        underline: Apply underline
+        font_size: Font size in points
+        font_family: Font family name
+        text_color: Text color as hex string "#RRGGBB"
+        background_color: Background (highlight) color as hex string "#RRGGBB"
+        link_url: URL for hyperlink (use "" to remove link)
+
+    Returns:
+        str: Confirmation message
+    """
+    logger.info(
+        f"[apply_doc_text_style] Doc={document_id}, range={start_index}-{end_index}"
+    )
+
+    validator = ValidationManager()
+    is_valid, error_msg = validator.validate_document_id(document_id)
+    if not is_valid:
+        return f"Error: {error_msg}"
+
+    is_valid, error_msg = validator.validate_index_range(start_index, end_index)
+    if not is_valid:
+        return f"Error: {error_msg}"
+
+    if any(
+        [
+            bold is not None,
+            italic is not None,
+            underline is not None,
+            font_size,
+            font_family,
+            text_color,
+            background_color,
+        ]
+    ):
+        is_valid, error_msg = validator.validate_text_formatting_params(
+            bold,
+            italic,
+            underline,
+            font_size,
+            font_family,
+            text_color,
+            background_color,
+        )
+        if not is_valid:
+            return f"Error: {error_msg}"
+
+    request = create_format_text_request(
+        start_index,
+        end_index,
+        bold,
+        italic,
+        underline,
+        font_size,
+        font_family,
+        text_color,
+        background_color,
+        link_url,
+    )
+    if not request:
+        return "Error: No style parameters provided."
+
+    await asyncio.to_thread(
+        service.documents()
+        .batchUpdate(documentId=document_id, body={"requests": [request]})
+        .execute
+    )
+
+    link = f"https://docs.google.com/document/d/{document_id}/edit"
+    return f"Applied text style to range {start_index}-{end_index} in document {document_id}. Link: {link}"
 
 
 @server.tool()
@@ -1208,30 +1369,55 @@ async def debug_table_structure(
 
 
 @server.tool()
-@handle_http_errors("export_doc_to_pdf", service_type="drive")
+@handle_http_errors("export_doc", service_type="drive")
 @require_google_service("drive", "drive_file")
-async def export_doc_to_pdf(
+async def export_doc(
     service: Any,
     user_google_email: str,
     document_id: str,
-    pdf_filename: str = None,
+    export_format: str = "pdf",
+    output_filename: str = None,
     folder_id: str = None,
 ) -> str:
     """
-    Exports a Google Doc to PDF format and saves it to Google Drive.
+    Exports a Google Doc to a specified format (pdf, docx, html, txt, odt) and saves it to Google Drive.
 
     Args:
         user_google_email: User's Google email address
         document_id: ID of the Google Doc to export
-        pdf_filename: Name for the PDF file (optional - if not provided, uses original name + "_PDF")
-        folder_id: Drive folder ID to save PDF in (optional - if not provided, saves in root)
+        export_format: Format to export to ('pdf', 'docx', 'html', 'txt', 'odt')
+        output_filename: Name for the exported file (optional - if not provided, uses original name + extension)
+        folder_id: Drive folder ID to save exported file in (optional - if not provided, saves in root)
 
     Returns:
-        str: Confirmation message with PDF file details and links
+        str: Confirmation message with exported file details and links
     """
     logger.info(
-        f"[export_doc_to_pdf] Email={user_google_email}, Doc={document_id}, pdf_filename={pdf_filename}, folder_id={folder_id}"
+        f"[export_doc] Email={user_google_email}, Doc={document_id}, format={export_format}, filename={output_filename}, folder={folder_id}"
     )
+
+    mime_types = {
+        "pdf": "application/pdf",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "html": "application/zip",
+        "txt": "text/plain",
+        "odt": "application/vnd.oasis.opendocument.text",
+    }
+
+    extensions = {
+        "pdf": ".pdf",
+        "docx": ".docx",
+        "html": ".zip",
+        "txt": ".txt",
+        "odt": ".odt",
+    }
+
+    export_format = export_format.lower()
+    if export_format not in mime_types:
+        return f"Error: Unsupported export format '{export_format}'. Supported formats: {', '.join(mime_types.keys())}"
+
+    export_mime_type = mime_types[export_format]
+    file_extension = extensions[export_format]
 
     # Get file metadata first to validate it's a Google Doc
     try:
@@ -1253,14 +1439,14 @@ async def export_doc_to_pdf(
 
     # Verify it's a Google Doc
     if mime_type != "application/vnd.google-apps.document":
-        return f"Error: File '{original_name}' is not a Google Doc (MIME type: {mime_type}). Only native Google Docs can be exported to PDF."
+        return f"Error: File '{original_name}' is not a Google Doc (MIME type: {mime_type}). Only native Google Docs can be exported."
 
-    logger.info(f"[export_doc_to_pdf] Exporting '{original_name}' to PDF")
+    logger.info(f"[export_doc] Exporting '{original_name}' to {export_format.upper()}")
 
-    # Export the document as PDF
+    # Export the document
     try:
         request_obj = service.files().export_media(
-            fileId=document_id, mimeType="application/pdf"
+            fileId=document_id, mimeType=export_mime_type
         )
 
         fh = io.BytesIO()
@@ -1270,27 +1456,27 @@ async def export_doc_to_pdf(
         while not done:
             _, done = await asyncio.to_thread(downloader.next_chunk)
 
-        pdf_content = fh.getvalue()
-        pdf_size = len(pdf_content)
+        content = fh.getvalue()
+        content_size = len(content)
 
     except Exception as e:
-        return f"Error: Failed to export document to PDF: {str(e)}"
+        return f"Error: Failed to export document: {str(e)}"
 
-    # Determine PDF filename
-    if not pdf_filename:
-        pdf_filename = f"{original_name}_PDF.pdf"
-    elif not pdf_filename.endswith(".pdf"):
-        pdf_filename += ".pdf"
+    # Determine filename
+    if not output_filename:
+        output_filename = f"{original_name}_{export_format.upper()}{file_extension}"
+    elif not output_filename.endswith(file_extension):
+        output_filename += file_extension
 
-    # Upload PDF to Drive
+    # Upload to Drive
     try:
         # Reuse the existing BytesIO object by resetting to the beginning
         fh.seek(0)
         # Create media upload object
-        media = MediaIoBaseUpload(fh, mimetype="application/pdf", resumable=True)
+        media = MediaIoBaseUpload(fh, mimetype=export_mime_type, resumable=True)
 
         # Prepare file metadata for upload
-        file_metadata = {"name": pdf_filename, "mimeType": "application/pdf"}
+        file_metadata = {"name": output_filename, "mimeType": export_mime_type}
 
         # Add parent folder if specified
         if folder_id:
@@ -1308,24 +1494,24 @@ async def export_doc_to_pdf(
             .execute
         )
 
-        pdf_file_id = uploaded_file.get("id")
-        pdf_web_link = uploaded_file.get("webViewLink", "#")
-        pdf_parents = uploaded_file.get("parents", [])
+        new_file_id = uploaded_file.get("id")
+        new_web_link = uploaded_file.get("webViewLink", "#")
+        new_parents = uploaded_file.get("parents", [])
 
         logger.info(
-            f"[export_doc_to_pdf] Successfully uploaded PDF to Drive: {pdf_file_id}"
+            f"[export_doc] Successfully uploaded to Drive: {new_file_id}"
         )
 
         folder_info = ""
         if folder_id:
             folder_info = f" in folder {folder_id}"
-        elif pdf_parents:
-            folder_info = f" in folder {pdf_parents[0]}"
+        elif new_parents:
+            folder_info = f" in folder {new_parents[0]}"
 
-        return f"Successfully exported '{original_name}' to PDF and saved to Drive as '{pdf_filename}' (ID: {pdf_file_id}, {pdf_size:,} bytes){folder_info}. PDF: {pdf_web_link} | Original: {web_view_link}"
+        return f"Successfully exported '{original_name}' to {export_format.upper()} and saved to Drive as '{output_filename}' (ID: {new_file_id}, {content_size:,} bytes){folder_info}. Export: {new_web_link} | Original: {web_view_link}"
 
     except Exception as e:
-        return f"Error: Failed to upload PDF to Drive: {str(e)}. PDF was generated successfully ({pdf_size:,} bytes) but could not be saved to Drive."
+        return f"Error: Failed to upload to Drive: {str(e)}. File was exported successfully ({content_size:,} bytes) but could not be saved to Drive."
 
 
 # Create comment management tools for documents
