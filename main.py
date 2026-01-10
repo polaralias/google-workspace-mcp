@@ -105,6 +105,8 @@ def main():
             "tasks",
             "keep",
             "search",
+            "admin_directory",
+            "admin_reports",
         ],
         help="Specify which tools to register. If not provided, all tools are registered.",
     )
@@ -186,6 +188,8 @@ def main():
         "tasks": lambda: import_module("gtasks.tasks_tools"),
         "keep": lambda: import_module("gkeep.keep_tools"),
         "search": lambda: import_module("gsearch.search_tools"),
+        "admin_directory": lambda: import_module("gadmin.directory_tools"),
+        "admin_reports": lambda: import_module("gadmin.reports_tools"),
     }
 
     tool_icons = {
@@ -200,6 +204,8 @@ def main():
         "tasks": "✓",
         "keep": "📝",
         "search": "🔍",
+        "admin_directory": "👥",
+        "admin_reports": "🛡️",
     }
 
     # Determine which tools to import based on arguments

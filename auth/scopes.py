@@ -68,6 +68,30 @@ KEEP_READONLY_SCOPE = "https://www.googleapis.com/auth/keep.readonly"
 # Google Custom Search API scope
 CUSTOM_SEARCH_SCOPE = "https://www.googleapis.com/auth/cse"
 
+# Admin SDK Directory API scopes
+ADMIN_DIRECTORY_USER_SCOPE = "https://www.googleapis.com/auth/admin.directory.user"
+ADMIN_DIRECTORY_USER_READONLY_SCOPE = (
+    "https://www.googleapis.com/auth/admin.directory.user.readonly"
+)
+ADMIN_DIRECTORY_GROUP_SCOPE = "https://www.googleapis.com/auth/admin.directory.group"
+ADMIN_DIRECTORY_GROUP_READONLY_SCOPE = (
+    "https://www.googleapis.com/auth/admin.directory.group.readonly"
+)
+ADMIN_DIRECTORY_GROUP_MEMBER_SCOPE = (
+    "https://www.googleapis.com/auth/admin.directory.group.member"
+)
+ADMIN_DIRECTORY_GROUP_MEMBER_READONLY_SCOPE = (
+    "https://www.googleapis.com/auth/admin.directory.group.member.readonly"
+)
+
+# Admin SDK Reports API scopes
+ADMIN_REPORTS_AUDIT_READONLY_SCOPE = (
+    "https://www.googleapis.com/auth/admin.reports.audit.readonly"
+)
+ADMIN_REPORTS_USAGE_READONLY_SCOPE = (
+    "https://www.googleapis.com/auth/admin.reports.usage.readonly"
+)
+
 # Base OAuth scopes required for user identification
 BASE_SCOPES = [USERINFO_EMAIL_SCOPE, USERINFO_PROFILE_SCOPE, OPENID_SCOPE]
 
@@ -105,6 +129,20 @@ KEEP_SCOPES = [KEEP_SCOPE, KEEP_READONLY_SCOPE]
 
 CUSTOM_SEARCH_SCOPES = [CUSTOM_SEARCH_SCOPE]
 
+ADMIN_DIRECTORY_SCOPES = [
+    ADMIN_DIRECTORY_USER_SCOPE,
+    ADMIN_DIRECTORY_USER_READONLY_SCOPE,
+    ADMIN_DIRECTORY_GROUP_SCOPE,
+    ADMIN_DIRECTORY_GROUP_READONLY_SCOPE,
+    ADMIN_DIRECTORY_GROUP_MEMBER_SCOPE,
+    ADMIN_DIRECTORY_GROUP_MEMBER_READONLY_SCOPE,
+]
+
+ADMIN_REPORTS_SCOPES = [
+    ADMIN_REPORTS_AUDIT_READONLY_SCOPE,
+    ADMIN_REPORTS_USAGE_READONLY_SCOPE,
+]
+
 # Tool-to-scopes mapping
 TOOL_SCOPES_MAP = {
     "gmail": GMAIL_SCOPES,
@@ -118,6 +156,8 @@ TOOL_SCOPES_MAP = {
     "tasks": TASKS_SCOPES,
     "keep": KEEP_SCOPES,
     "search": CUSTOM_SEARCH_SCOPES,
+    "admin_directory": ADMIN_DIRECTORY_SCOPES,
+    "admin_reports": ADMIN_REPORTS_SCOPES,
 }
 
 

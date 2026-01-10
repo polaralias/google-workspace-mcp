@@ -206,3 +206,27 @@ search:
     - search_custom_siterestrict
   complete:
     - get_search_engine_info
+
+admin_directory:
+  core:
+    - list_users
+    - get_user
+    - list_groups
+    - get_group
+    - list_group_members
+  extended:
+    - create_user
+    - suspend_user
+    - restore_user
+    - create_group
+    - delete_group
+    - add_group_member
+    - remove_group_member
+  complete: []
+
+admin_reports:
+  core:
+    - list_admin_activities
+  extended:
+    - list_drive_activities_via_reports
+  complete: []
