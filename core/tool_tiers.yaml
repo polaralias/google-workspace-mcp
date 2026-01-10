@@ -60,6 +60,11 @@ calendar:
     - modify_event
   extended:
     - delete_event
+    - get_free_busy
+    - list_calendar_acl
+    - create_calendar_acl_rule
+    - delete_calendar_acl_rule
+    - create_recurring_event
   complete: []
 
 docs:
