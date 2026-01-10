@@ -98,12 +98,23 @@ sheets:
     - read_sheet_values
     - modify_sheet_values
     - format_sheet_range
+    - append_sheet_rows
   extended:
     - list_spreadsheets
     - get_spreadsheet_info
     - add_conditional_formatting
     - update_conditional_formatting
     - delete_conditional_formatting
+    - batch_get_sheet_values
+    - batch_update_sheet_values
+    - create_named_range
+    - update_named_range
+    - delete_named_range
+    - add_data_validation
+    - set_protected_range
+    - create_chart
+    - update_chart
+    - create_pivot_table
   complete:
     - create_sheet
     - read_spreadsheet_comments

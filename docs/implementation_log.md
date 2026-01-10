@@ -65,13 +65,21 @@ This document tracks the progress of the Google Workspace MCP server implementat
 - [x] Updated `core/tool_tiers.yaml` to include these new tools in the `extended` tier for Calendar.
 
 ### 2.4 Docs
-- [ ] Formatting wrappers
-- [ ] Export formats
+- [x] Formatting wrappers
+- [x] Export formats
 
 ### 2.5 Sheets
-- [ ] Data operations
-- [ ] Spreadsheet structure
-- [ ] Analytics
+- [x] Data operations
+    - `append_sheet_rows`
+    - `batch_get_sheet_values`
+    - `batch_update_sheet_values`
+- [x] Spreadsheet structure
+    - `create_named_range`, `update_named_range`, `delete_named_range`
+    - `add_data_validation`
+    - `set_protected_range`
+- [x] Analytics
+    - `create_chart`, `update_chart`
+    - `create_pivot_table`
 
 ### 2.6 Slides
 - [ ] Opinionated builders
