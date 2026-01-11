@@ -88,7 +88,7 @@ async def search_contacts(
     user_google_email: str,
     query: str,
     read_mask: str = "names,emailAddresses,phoneNumbers",
-    limit: int = 10,
+    page_size: int = 10,
 ) -> str:
     """
     Search for contacts.
@@ -97,7 +97,7 @@ async def search_contacts(
         user_google_email (str): The user's Google email address. Required.
         query (str): The search query.
         read_mask (str): Comma-separated list of fields to fetch. Defaults to "names,emailAddresses,phoneNumbers".
-        limit (int): Maximum number of results to return. Defaults to 10.
+        page_size (int): Maximum number of results to return. Defaults to 10.
 
     Returns:
         str: Search results.
@@ -111,7 +111,7 @@ async def search_contacts(
 
     # searchContacts does not have a 'limit' param in the same way, but pageSize might work if supported or we slice results.
     # The API documentation says 'pageSize' (default 10).
-    params["pageSize"] = limit
+    params["pageSize"] = page_size
 
     result = await asyncio.to_thread(service.people().searchContacts(**params).execute)
 

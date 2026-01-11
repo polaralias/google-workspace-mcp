@@ -26,7 +26,7 @@ async def list_admin_activities(
     start_time: Optional[str] = None,
     end_time: Optional[str] = None,
     event_name: Optional[str] = None,
-    max_results: int = 100,
+    page_size: int = 100,
     page_token: Optional[str] = None,
 ) -> str:
     """
@@ -40,7 +40,7 @@ async def list_admin_activities(
         start_time (Optional[str]): Return events which occurred at or after this time (RFC 3339 format).
         end_time (Optional[str]): Return events which occurred at or before this time (RFC 3339 format).
         event_name (Optional[str]): Name of the event being queried.
-        max_results (int): Maximum number of events to return. Defaults to 100.
+        page_size (int): Maximum number of events to return. Defaults to 100.
         page_token (Optional[str]): Token for the next page of results.
 
     Returns:
@@ -53,7 +53,7 @@ async def list_admin_activities(
     params = {
         "userKey": user_key,
         "applicationName": application_name,
-        "maxResults": max_results,
+        "maxResults": page_size,
     }
     if start_time:
         params["startTime"] = start_time
@@ -105,7 +105,7 @@ async def list_drive_activities_via_reports(
     user_google_email: str,
     user_key: str = "all",
     start_time: Optional[str] = None,
-    max_results: int = 50,
+    page_size: int = 50,
 ) -> str:
     """
     Convenience tool to list Drive activities specifically via Reports API.
@@ -114,7 +114,7 @@ async def list_drive_activities_via_reports(
         user_google_email (str): The user's Google email address. Required.
         user_key (str): The profile ID or the user email. Defaults to "all".
         start_time (Optional[str]): Return events which occurred at or after this time (RFC 3339 format).
-        max_results (int): Maximum number of events to return. Defaults to 50.
+        page_size (int): Maximum number of events to return. Defaults to 50.
 
     Returns:
         str: A list of Drive activities.
@@ -129,5 +129,5 @@ async def list_drive_activities_via_reports(
         application_name="drive",
         user_key=user_key,
         start_time=start_time,
-        max_results=max_results,
+        page_size=page_size,
     )

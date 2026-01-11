@@ -41,34 +41,41 @@ logger = logging.getLogger(__name__)
 async def list_spreadsheets(
     service,
     user_google_email: str,
-    max_results: int = 25,
+    page_size: int = 25,
+    page_token: Optional[str] = None
 ) -> str:
     """
     Lists spreadsheets from Google Drive that the user has access to.
 
     Args:
         user_google_email (str): The user's Google email address. Required.
-        max_results (int): Maximum number of spreadsheets to return. Defaults to 25.
+        page_size (int): Maximum number of spreadsheets to return. Defaults to 25.
+        page_token (Optional[str]): Token for retrieving the next page of results.
 
     Returns:
         str: A formatted list of spreadsheet files (name, ID, modified time).
     """
     logger.info(f"[list_spreadsheets] Invoked. Email: '{user_google_email}'")
 
+    params = {
+        "q": "mimeType='application/vnd.google-apps.spreadsheet'",
+        "pageSize": page_size,
+        "fields": "nextPageToken, files(id,name,modifiedTime,webViewLink)",
+        "orderBy": "modifiedTime desc",
+        "supportsAllDrives": True,
+        "includeItemsFromAllDrives": True,
+    }
+
+    if page_token:
+        params["pageToken"] = page_token
+
     files_response = await asyncio.to_thread(
-        service.files()
-        .list(
-            q="mimeType='application/vnd.google-apps.spreadsheet'",
-            pageSize=max_results,
-            fields="files(id,name,modifiedTime,webViewLink)",
-            orderBy="modifiedTime desc",
-            supportsAllDrives=True,
-            includeItemsFromAllDrives=True,
-        )
-        .execute
+        service.files().list(**params).execute
     )
 
     files = files_response.get("files", [])
+    next_page_token = files_response.get("nextPageToken")
+
     if not files:
         return f"No spreadsheets found for {user_google_email}."
 
@@ -81,6 +88,9 @@ async def list_spreadsheets(
         f"Successfully listed {len(files)} spreadsheets for {user_google_email}:\n"
         + "\n".join(spreadsheets_list)
     )
+
+    if next_page_token:
+        text_output += f"\nNext page token: {next_page_token}"
 
     logger.info(
         f"Successfully listed {len(files)} spreadsheets for {user_google_email}."
