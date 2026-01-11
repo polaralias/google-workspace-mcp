@@ -96,6 +96,19 @@ app.get('/api/connect-schema', (req: Request, res: Response) => {
   res.json(getSchema());
 });
 
+app.get('/.well-known/mcp-configuration', (req: Request, res: Response) => {
+  res.json({
+    sse: {
+      endpoint: '/sse'
+    },
+    oauth: {
+      authorizationUrl: '/connect',
+      tokenUrl: '/token',
+      scope: 'https://www.googleapis.com/auth/userinfo.email'
+    }
+  });
+});
+
 app.post('/api/api-keys', apiKeyLimiter, async (req: Request, res: Response) => {
   if (!apiKeyModeEnabled) {
     res.status(404).json({ error: 'Not found' });
