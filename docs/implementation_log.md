@@ -82,19 +82,44 @@ This document tracks the progress of the Google Workspace MCP server implementat
     - `create_pivot_table`
 
 ### 2.6 Slides
-- [ ] Opinionated builders
-- [ ] Export
+- [x] Opinionated builders
+    - `create_slide`
+    - `add_textbox`
+    - `set_text_style`
+    - `replace_text_everywhere`
+    - `insert_image_from_url`
+- [x] Export
+    - `export_presentation_pdf`
 
 ### 2.7 Forms
-- [ ] Form building
+- [x] Form building
+    - `batch_update_form`
+    - (Skipped `set_form_destination_sheet` due to API limitations)
 
 ### 2.8 Chat
-- [ ] Space management
-- [ ] Threaded messaging
+- [x] Space management
+    - `create_space`
+    - `list_members`, `add_member`, `remove_member`
+- [x] Threaded messaging
+    - `reply_in_thread`
 
 ### 2.9 Tasks
-- [ ] Wrapper tools
+- [x] Wrapper tools
+    - `complete_task`
+    - `reopen_task`
+    - `set_task_due_date`
 
 ## Phase 3: Add “Workspace admin” capabilities (new apps)
+
+### 3.1 Admin: Directory API (Admin SDK)
+- [ ] Create `gadmin/directory_tools.py`
+- [ ] Implement User management tools
+- [ ] Implement Group management tools
+- [ ] Update auth and configuration
+
+### 3.2 Admin: Reports API (audit/activity)
+- [ ] Create `gadmin/reports_tools.py`
+- [ ] Implement Activity report tools
+- [ ] Update auth and configuration
 
 ## Phase 4: Add People and Meet (new apps)

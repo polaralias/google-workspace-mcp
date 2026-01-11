@@ -8,8 +8,6 @@ import logging
 import asyncio
 from typing import Optional, List, Dict, Any, Literal
 
-from fastapi import Body, Field
-
 from auth.service_decorator import require_google_service
 from core.utils import handle_http_errors
 from core.server import server
@@ -154,9 +152,9 @@ async def get_keep_note(
 async def create_keep_note(
     service,
     user_google_email: str,
-    title: str = Body(..., description="The title of the note."),
-    text: Optional[str] = Body(None, description="The text content of the note."),
-    list_items: Optional[List[Dict[str, Any]]] = Body(None, description="List items for a list note. Each item should have 'text' and optional 'checked' boolean."),
+    title: str,
+    text: Optional[str] = None,
+    list_items: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """
     Creates a new note in Google Keep. Can be a text note or a list note.
@@ -325,7 +323,7 @@ async def share_keep_note(
     service,
     user_google_email: str,
     note_id: str,
-    writers: List[str] = Body(..., description="List of email addresses to add as writers."),
+    writers: List[str],
 ) -> str:
     """
     Shares a Google Keep note with specified users (adds them as writers).
@@ -368,7 +366,7 @@ async def unshare_keep_note(
     service,
     user_google_email: str,
     note_id: str,
-    writers: List[str] = Body(..., description="List of email addresses to remove."),
+    writers: List[str],
 ) -> str:
     """
     Unshares a Google Keep note (removes writers).

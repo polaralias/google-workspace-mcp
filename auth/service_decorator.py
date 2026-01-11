@@ -45,6 +45,14 @@ from auth.scopes import (
     KEEP_SCOPE,
     KEEP_READONLY_SCOPE,
     CUSTOM_SEARCH_SCOPE,
+    ADMIN_DIRECTORY_USER_SCOPE,
+    ADMIN_DIRECTORY_USER_READONLY_SCOPE,
+    ADMIN_DIRECTORY_GROUP_SCOPE,
+    ADMIN_DIRECTORY_GROUP_READONLY_SCOPE,
+    ADMIN_DIRECTORY_GROUP_MEMBER_SCOPE,
+    ADMIN_DIRECTORY_GROUP_MEMBER_READONLY_SCOPE,
+    ADMIN_REPORTS_AUDIT_READONLY_SCOPE,
+    ADMIN_REPORTS_USAGE_READONLY_SCOPE,
 )
 
 logger = logging.getLogger(__name__)
@@ -389,6 +397,8 @@ SERVICE_CONFIGS = {
     "tasks": {"service": "tasks", "version": "v1"},
     "keep": {"service": "keep", "version": "v1"},
     "customsearch": {"service": "customsearch", "version": "v1"},
+    "admin_directory": {"service": "admin", "version": "directory_v1"},
+    "admin_reports": {"service": "admin", "version": "reports_v1"},
 }
 
 
@@ -433,6 +443,16 @@ SCOPE_GROUPS = {
     "keep_read": KEEP_READONLY_SCOPE,
     # Custom Search scope
     "customsearch": CUSTOM_SEARCH_SCOPE,
+    # Admin Directory scopes
+    "admin_directory_user": ADMIN_DIRECTORY_USER_SCOPE,
+    "admin_directory_user_readonly": ADMIN_DIRECTORY_USER_READONLY_SCOPE,
+    "admin_directory_group": ADMIN_DIRECTORY_GROUP_SCOPE,
+    "admin_directory_group_readonly": ADMIN_DIRECTORY_GROUP_READONLY_SCOPE,
+    "admin_directory_group_member": ADMIN_DIRECTORY_GROUP_MEMBER_SCOPE,
+    "admin_directory_group_member_readonly": ADMIN_DIRECTORY_GROUP_MEMBER_READONLY_SCOPE,
+    # Admin Reports scopes
+    "admin_reports_audit_readonly": ADMIN_REPORTS_AUDIT_READONLY_SCOPE,
+    "admin_reports_usage_readonly": ADMIN_REPORTS_USAGE_READONLY_SCOPE,
 }
 
 
