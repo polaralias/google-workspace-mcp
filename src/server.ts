@@ -374,6 +374,10 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
 });
 
 app.get('/', async (req: Request, res: Response) => {
+  if (req.headers.accept === 'text/event-stream') {
+    res.redirect('/sse');
+    return;
+  }
   if (!apiKeyModeEnabled) {
     res.status(404).send('Not found');
     return;
@@ -401,9 +405,7 @@ app.get('/connect.js', (req: Request, res: Response) => {
   res.sendFile(path.join(publicDir, 'connect.js'));
 });
 
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: 'Not found' });
-});
+// 404 handler moved to start() to ensure it doesn't block dynamically added routes
 
 async function start() {
   try {
@@ -428,6 +430,11 @@ async function start() {
     } else {
       await mcp.startSse(app);
     }
+
+    // Add 404 handler last to ensure all routes are registered
+    app.use((req: Request, res: Response) => {
+      res.status(404).json({ error: 'Not found' });
+    });
 
     // Always start HTTP server (needed for Auth UI and SSE)
     app.listen(config.PORT, () => {
