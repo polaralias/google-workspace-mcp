@@ -112,14 +112,25 @@ This document tracks the progress of the Google Workspace MCP server implementat
 ## Phase 3: Add “Workspace admin” capabilities (new apps)
 
 ### 3.1 Admin: Directory API (Admin SDK)
-- [ ] Create `gadmin/directory_tools.py`
-- [ ] Implement User management tools
-- [ ] Implement Group management tools
-- [ ] Update auth and configuration
+- [x] Create `gadmin/directory_tools.py`
+- [x] Implement User management tools (`list_users`, `get_user`, `create_user`, `suspend_user`, `restore_user`)
+- [x] Implement Group management tools (`list_groups`, `get_group`, `create_group`, `delete_group`, `add_group_member`, `remove_group_member`, `list_group_members`)
+- [x] Update auth and configuration
 
 ### 3.2 Admin: Reports API (audit/activity)
-- [ ] Create `gadmin/reports_tools.py`
-- [ ] Implement Activity report tools
-- [ ] Update auth and configuration
+- [x] Create `gadmin/reports_tools.py`
+- [x] Implement Activity report tools (`list_admin_activities`)
+- [x] Update auth and configuration
 
 ## Phase 4: Add People and Meet (new apps)
+
+### 4.1 People (contacts)
+- [x] Create `gpeople/people_tools.py`
+- [x] Implement Contacts CRUD (`list_contacts`, `search_contacts`, `create_contact`, `update_contact`, `delete_contact`)
+- [x] Update auth and configuration
+
+### 4.2 Meet (meeting artefacts and records)
+- [x] Create `gmeet/meet_tools.py`
+- [x] Implement `list_conference_records`
+- [x] Implement `get_conference_record`
+- [x] Update auth and configuration

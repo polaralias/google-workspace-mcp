@@ -107,6 +107,8 @@ def main():
             "search",
             "admin_directory",
             "admin_reports",
+            "people",
+            "meet",
         ],
         help="Specify which tools to register. If not provided, all tools are registered.",
     )
@@ -190,6 +192,8 @@ def main():
         "search": lambda: import_module("gsearch.search_tools"),
         "admin_directory": lambda: import_module("gadmin.directory_tools"),
         "admin_reports": lambda: import_module("gadmin.reports_tools"),
+        "people": lambda: import_module("gpeople.people_tools"),
+        "meet": lambda: import_module("gmeet.meet_tools"),
     }
 
     tool_icons = {
@@ -206,6 +210,8 @@ def main():
         "search": "🔍",
         "admin_directory": "👥",
         "admin_reports": "🛡️",
+        "people": "👥",
+        "meet": "🎥",
     }
 
     # Determine which tools to import based on arguments

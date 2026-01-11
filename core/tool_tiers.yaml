@@ -230,3 +230,20 @@ admin_reports:
   extended:
     - list_drive_activities_via_reports
   complete: []
+
+people:
+  core:
+    - list_contacts
+    - search_contacts
+    - create_contact
+    - update_contact
+  extended:
+    - delete_contact
+  complete: []
+
+meet:
+  core:
+    - list_conference_records
+    - get_conference_record
+  extended: []
+  complete: []
