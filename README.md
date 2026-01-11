@@ -8,6 +8,8 @@ A comprehensive, highly performant Model Context Protocol (MCP) server for Googl
 -   **Tiered Tooling**: logical separation of tools into `core` (essential), `extended` (advanced), and `complete` (admin/sensitive) tiers.
 -   **Dual Transport**: Supports both `stdio` (local) and `streamable-http` (SSE) transports.
 -   **Flexible Auth**: Supports user OAuth (end-user flows) and Service Account + Domain-Wide Delegation (admin/server-to-server).
+-   **Self-serve API Keys**: Optional auth service to issue user-bound API keys from `/`, with redirect support from connection URLs.
+-   **Encrypted Local Config**: A deployment master key encrypts stored secrets in Postgres for local auth.
 -   **Performance**: Built with `fastmcp` and `fastapi` for low latency and high concurrency.
 
 ## Supported Services
@@ -57,6 +59,14 @@ pip install -r requirements.txt
 
 For **Service Account** usage (Admin/Keep), set `GOOGLE_APPLICATION_CREDENTIALS` to your service account key file path. Ensure Domain-Wide Delegation is configured for the service account with appropriate scopes.
 
+### User-bound API Keys (Local Auth Service)
+
+Run the local auth service to store encrypted configuration and issue user-bound API keys:
+
+-   **Required**: `MASTER_KEY` (64-hex string or passphrase) and `DATABASE_URL` (Postgres).
+-   **Enable UI**: Set `API_KEY_MODE=user_bound` to expose `/`.
+-   **Self-serve flow**: Visit `http://localhost:3000/` and complete the form. If you open a connection URL that includes `redirect_uri` (or `callback_url`) and optional `state`, the page will redirect back with `api_key` in the query string.
+
 ## Configuration
 
 ### Environment Variables
@@ -66,6 +76,24 @@ For **Service Account** usage (Admin/Keep), set `GOOGLE_APPLICATION_CREDENTIALS`
 -   `GOOGLE_OAUTH_CLIENT_SECRET`: OAuth Client Secret
 -   `USER_GOOGLE_EMAIL`: Default user email (optional)
 -   `MCP_SINGLE_USER_MODE`: Enable single-user mode (true/false)
+
+### Auth Service Environment Variables
+
+-   `PORT`: Auth server port (default: 3000)
+-   `MASTER_KEY`: Encryption key for local auth config (64-hex or passphrase)
+-   `DATABASE_URL`: Postgres connection string for stored configs and API keys
+-   `API_KEY_MODE`: Set to `user_bound` to enable `/`
+-   `REDIRECT_URI_ALLOWLIST`: Comma-separated domains allowed to receive redirects
+-   `CODE_TTL_SECONDS`: OAuth auth code TTL in seconds (default: 90)
+-   `TOKEN_TTL_SECONDS`: Token TTL in seconds (default: 3600)
+
+### Docker Compose (Local Auth + Database)
+
+The `docker-compose.yml` includes a Postgres service and the auth server. Set `MASTER_KEY` in your `.env`, then run:
+
+```bash
+docker compose up
+```
 
 ### Tool Tiers
 

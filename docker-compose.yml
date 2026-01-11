@@ -11,6 +11,36 @@ services:
       - store_creds:/app/store_creds:rw
     env_file:
       - .env
+  gws_mcp_auth:
+    image: node:20-alpine
+    container_name: gws_mcp_auth
+    working_dir: /app
+    command: sh -c "npm install && npm run start"
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - API_KEY_MODE=user_bound
+      - MASTER_KEY=${MASTER_KEY}
+      - DATABASE_URL=postgres://gws_mcp:gws_mcp@db:5432/gws_mcp
+      - REDIRECT_URI_ALLOWLIST=localhost,127.0.0.1
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    container_name: gws_mcp_db
+    environment:
+      POSTGRES_DB: gws_mcp
+      POSTGRES_USER: gws_mcp
+      POSTGRES_PASSWORD: gws_mcp
+    ports:
+      - "5432:5432"
+    volumes:
+      - gws_mcp_db:/var/lib/postgresql/data
 
 volumes:
   store_creds:
+  gws_mcp_db:
