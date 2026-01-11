@@ -3,15 +3,30 @@
   "version": "0.1.0",
   "private": true,
   "description": "Minimal MCP integration backend with user-bound API keys and OAuth 2.0 PKCE.",
-  "main": "src/server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "cli": "node src/cli.js"
+    "build": "tsc",
+    "start": "ts-node src/server.ts",
+    "cli": "ts-node src/cli.ts",
+    "dev": "ts-node src/server.ts"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
+    "dotenv": "^17.2.3",
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
     "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@actions/core": "^2.0.2",
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.6",
+    "@types/pg": "^8.16.0",
+    "googleapis": "^170.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.5"
   }
 }
