@@ -1348,3 +1348,130 @@ async def create_recurring_event(
     message = f"Successfully created recurring event '{summary}' (ID: {created_event.get('id')}) for {user_google_email}. Link: {link}"
     logger.info(message)
     return message
+
+
+@server.tool()
+@handle_http_errors("suggest_meeting_times", is_read_only=True, service_type="calendar")
+@require_google_service("calendar", "calendar_read")
+async def suggest_meeting_times(
+    service,
+    user_google_email: str,
+    attendees: List[str],
+    duration_minutes: int,
+    time_min: str,
+    time_max: str,
+    time_zone: str = "UTC",
+) -> str:
+    """
+    Suggests meeting times where all attendees are available.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        attendees (List[str]): List of attendee email addresses.
+        duration_minutes (int): Duration of the meeting in minutes.
+        time_min (str): Start of the search window (RFC3339).
+        time_max (str): End of the search window (RFC3339).
+        time_zone (str): Time zone for the search (default: 'UTC').
+
+    Returns:
+        str: List of suggested time slots.
+    """
+    logger.info(
+        f"[suggest_meeting_times] Invoked. Email: '{user_google_email}', Attendees: {attendees}, Duration: {duration_minutes}m"
+    )
+
+    formatted_time_min = _correct_time_format_for_api(time_min, "time_min")
+    formatted_time_max = _correct_time_format_for_api(time_max, "time_max")
+
+    if not formatted_time_min or not formatted_time_max:
+         return "Invalid time_min or time_max provided."
+
+    # Parse range to datetime objects for calculation
+    try:
+        # RFC3339 format usually: 2023-10-27T10:00:00Z or 2023-10-27T10:00:00+00:00
+        # datetime.fromisoformat handles basic ISO, but might need adjustment for Z
+        def parse_dt(t):
+            if t.endswith("Z"):
+                t = t[:-1] + "+00:00"
+            return datetime.datetime.fromisoformat(t)
+
+        start_dt = parse_dt(formatted_time_min)
+        end_dt = parse_dt(formatted_time_max)
+    except Exception as e:
+        return f"Error parsing time range: {e}"
+
+    # Query FreeBusy
+    body = {
+        "timeMin": formatted_time_min,
+        "timeMax": formatted_time_max,
+        "timeZone": time_zone,
+        "items": [{"id": email} for email in attendees],
+    }
+
+    free_busy_response = await asyncio.to_thread(
+        lambda: service.freebusy().query(body=body).execute()
+    )
+
+    calendars = free_busy_response.get("calendars", {})
+    if not calendars:
+        return "No free/busy information found."
+
+    # Consolidate busy intervals
+    # We want to find common free time.
+    # Approach:
+    # 1. Start with one free interval [start_dt, end_dt]
+    # 2. Subtract all busy intervals from all attendees from this set of free intervals.
+
+    free_intervals = [(start_dt, end_dt)]
+
+    for cal_id, data in calendars.items():
+        busy_intervals = data.get("busy", [])
+        for busy in busy_intervals:
+            busy_start = parse_dt(busy["start"])
+            busy_end = parse_dt(busy["end"])
+
+            new_free_intervals = []
+            for free_start, free_end in free_intervals:
+                # Case 1: Busy interval doesn't overlap or touches edges
+                if busy_end <= free_start or busy_start >= free_end:
+                    new_free_intervals.append((free_start, free_end))
+                # Case 2: Busy interval completely covers free interval
+                elif busy_start <= free_start and busy_end >= free_end:
+                    pass # Remove this free interval
+                # Case 3: Busy interval is inside free interval -> Split
+                elif busy_start > free_start and busy_end < free_end:
+                    new_free_intervals.append((free_start, busy_start))
+                    new_free_intervals.append((busy_end, free_end))
+                # Case 4: Busy interval overlaps start
+                elif busy_start <= free_start and busy_end < free_end:
+                    new_free_intervals.append((busy_end, free_end))
+                # Case 5: Busy interval overlaps end
+                elif busy_start > free_start and busy_end >= free_end:
+                    new_free_intervals.append((free_start, busy_start))
+
+            free_intervals = new_free_intervals
+
+    # Filter by duration and format output
+    duration_delta = datetime.timedelta(minutes=duration_minutes)
+    suggested_slots = []
+
+    for start, end in free_intervals:
+        if end - start >= duration_delta:
+            # We have a slot.
+            # Just listing the full available slot is usually enough,
+            # but if it's huge, maybe we just list the start + duration?
+            # Let's list the available window.
+            suggested_slots.append(f"{start.isoformat()} to {end.isoformat()}")
+
+    if not suggested_slots:
+        return "No common meeting slots found for all attendees in the specified time range."
+
+    result = f"Suggested Meeting Times ({duration_minutes} min duration):\n"
+    # Limit to top 10 suggestions to avoid spam
+    for slot in suggested_slots[:10]:
+        result += f"- {slot}\n"
+
+    if len(suggested_slots) > 10:
+        result += f"... and {len(suggested_slots) - 10} more."
+
+    return result
