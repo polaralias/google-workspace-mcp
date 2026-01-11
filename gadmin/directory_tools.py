@@ -28,7 +28,7 @@ async def list_users(
     user_google_email: str,
     domain: Optional[str] = None,
     query: Optional[str] = None,
-    max_results: int = 100,
+    page_size: int = 100,
     page_token: Optional[str] = None,
 ) -> str:
     """
@@ -38,7 +38,7 @@ async def list_users(
         user_google_email (str): The user's Google email address. Required.
         domain (Optional[str]): The domain name to list users from. If not provided, uses the customer's primary domain.
         query (Optional[str]): Query string for filtering users (e.g., "email:user@example.com").
-        max_results (int): Maximum number of users to return. Defaults to 100.
+        page_size (int): Maximum number of users to return. Defaults to 100.
         page_token (Optional[str]): Token for the next page of results.
 
     Returns:
@@ -46,7 +46,7 @@ async def list_users(
     """
     logger.info(f"[list_users] Invoked. Email: '{user_google_email}', Domain: '{domain}'")
 
-    params = {"customer": "my_customer", "maxResults": max_results}
+    params = {"customer": "my_customer", "maxResults": page_size}
     if domain:
         params["domain"] = domain
     if query:
@@ -237,7 +237,7 @@ async def list_groups(
     user_google_email: str,
     domain: Optional[str] = None,
     user_key: Optional[str] = None,
-    max_results: int = 100,
+    page_size: int = 100,
     page_token: Optional[str] = None,
 ) -> str:
     """
@@ -247,7 +247,7 @@ async def list_groups(
         user_google_email (str): The user's Google email address. Required.
         domain (Optional[str]): The domain name to list groups from.
         user_key (Optional[str]): Email or ID of a user to list groups for (groups the user is a member of).
-        max_results (int): Maximum number of groups to return. Defaults to 100.
+        page_size (int): Maximum number of groups to return. Defaults to 100.
         page_token (Optional[str]): Token for the next page of results.
 
     Returns:
@@ -255,7 +255,7 @@ async def list_groups(
     """
     logger.info(f"[list_groups] Invoked. Email: '{user_google_email}'")
 
-    params = {"customer": "my_customer", "maxResults": max_results}
+    params = {"customer": "my_customer", "maxResults": page_size}
     if domain:
         params["domain"] = domain
     if user_key:
@@ -466,7 +466,7 @@ async def list_group_members(
     service,
     user_google_email: str,
     group_key: str,
-    max_results: int = 100,
+    page_size: int = 100,
     page_token: Optional[str] = None,
 ) -> str:
     """
@@ -475,7 +475,7 @@ async def list_group_members(
     Args:
         user_google_email (str): The user's Google email address. Required.
         group_key (str): The group's email address or unique ID.
-        max_results (int): Maximum number of members to return. Defaults to 100.
+        page_size (int): Maximum number of members to return. Defaults to 100.
         page_token (Optional[str]): Token for the next page of results.
 
     Returns:
@@ -485,7 +485,7 @@ async def list_group_members(
         f"[list_group_members] Invoked. Email: '{user_google_email}', Group: '{group_key}'"
     )
 
-    params = {"groupKey": group_key, "maxResults": max_results}
+    params = {"groupKey": group_key, "maxResults": page_size}
     if page_token:
         params["pageToken"] = page_token
 

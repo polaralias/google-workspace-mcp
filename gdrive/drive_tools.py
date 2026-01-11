@@ -52,6 +52,7 @@ async def search_drive_files(
     user_google_email: str,
     query: str,
     page_size: int = 10,
+    page_token: Optional[str] = None,
     drive_id: Optional[str] = None,
     include_items_from_all_drives: bool = True,
     corpora: Optional[str] = None,
@@ -63,6 +64,7 @@ async def search_drive_files(
         user_google_email (str): The user's Google email address. Required.
         query (str): The search query string. Supports Google Drive search operators.
         page_size (int): The maximum number of files to return. Defaults to 10.
+        page_token (Optional[str]): Token for retrieving the next page of results.
         drive_id (Optional[str]): ID of the shared drive to search. If None, behavior depends on `corpora` and `include_items_from_all_drives`.
         include_items_from_all_drives (bool): Whether shared drive items should be included in results. Defaults to True. This is effective when not specifying a `drive_id`.
         corpora (Optional[str]): Bodies of items to query (e.g., 'user', 'domain', 'drive', 'allDrives').
@@ -96,6 +98,7 @@ async def search_drive_files(
     list_params = build_drive_list_params(
         query=final_query,
         page_size=page_size,
+        page_token=page_token,
         drive_id=drive_id,
         include_items_from_all_drives=include_items_from_all_drives,
         corpora=corpora,
@@ -103,6 +106,8 @@ async def search_drive_files(
 
     results = await asyncio.to_thread(service.files().list(**list_params).execute)
     files = results.get("files", [])
+    next_page_token = results.get("nextPageToken")
+
     if not files:
         return f"No files found for '{query}'."
 
@@ -114,6 +119,10 @@ async def search_drive_files(
         formatted_files_text_parts.append(
             f'- Name: "{item["name"]}" (ID: {item["id"]}, Type: {item["mimeType"]}{size_str}, Modified: {item.get("modifiedTime", "N/A")}) Link: {item.get("webViewLink", "#")}'
         )
+
+    if next_page_token:
+        formatted_files_text_parts.append(f"\nNext page token: {next_page_token}")
+
     text_output = "\n".join(formatted_files_text_parts)
     return text_output
 
@@ -393,6 +402,7 @@ async def list_drive_items(
     user_google_email: str,
     folder_id: str = "root",
     page_size: int = 100,
+    page_token: Optional[str] = None,
     drive_id: Optional[str] = None,
     include_items_from_all_drives: bool = True,
     corpora: Optional[str] = None,
@@ -406,6 +416,7 @@ async def list_drive_items(
         user_google_email (str): The user's Google email address. Required.
         folder_id (str): The ID of the Google Drive folder. Defaults to 'root'. For a shared drive, this can be the shared drive's ID to list its root, or a folder ID within that shared drive.
         page_size (int): The maximum number of items to return. Defaults to 100.
+        page_token (Optional[str]): Token for retrieving the next page of results.
         drive_id (Optional[str]): ID of the shared drive. If provided, the listing is scoped to this drive.
         include_items_from_all_drives (bool): Whether items from all accessible shared drives should be included if `drive_id` is not set. Defaults to True.
         corpora (Optional[str]): Corpus to query ('user', 'drive', 'allDrives'). If `drive_id` is set and `corpora` is None, 'drive' is used. If None and no `drive_id`, API defaults apply.
@@ -423,6 +434,7 @@ async def list_drive_items(
     list_params = build_drive_list_params(
         query=final_query,
         page_size=page_size,
+        page_token=page_token,
         drive_id=drive_id,
         include_items_from_all_drives=include_items_from_all_drives,
         corpora=corpora,
@@ -430,6 +442,8 @@ async def list_drive_items(
 
     results = await asyncio.to_thread(service.files().list(**list_params).execute)
     files = results.get("files", [])
+    next_page_token = results.get("nextPageToken")
+
     if not files:
         return f"No items found in folder '{folder_id}'."
 
@@ -441,6 +455,10 @@ async def list_drive_items(
         formatted_items_text_parts.append(
             f'- Name: "{item["name"]}" (ID: {item["id"]}, Type: {item["mimeType"]}{size_str}, Modified: {item.get("modifiedTime", "N/A")}) Link: {item.get("webViewLink", "#")}'
         )
+
+    if next_page_token:
+        formatted_items_text_parts.append(f"\nNext page token: {next_page_token}")
+
     text_output = "\n".join(formatted_items_text_parts)
     return text_output
 
@@ -1765,6 +1783,7 @@ async def list_drive_revisions(
     user_google_email: str,
     file_id: str,
     page_size: int = 10,
+    page_token: Optional[str] = None,
 ) -> str:
     """
     Lists the revisions of a Google Drive file.
@@ -1773,6 +1792,7 @@ async def list_drive_revisions(
         user_google_email (str): The user's Google email address. Required.
         file_id (str): The ID of the file.
         page_size (int): Max number of revisions to return. Defaults to 10.
+        page_token (Optional[str]): Token for retrieving the next page of results.
 
     Returns:
         str: List of revisions.
@@ -1782,15 +1802,20 @@ async def list_drive_revisions(
     resolved_file_id, file_metadata = await resolve_drive_item(service, file_id, extra_fields="name")
     file_id = resolved_file_id
 
-    results = await asyncio.to_thread(
-        service.revisions().list(
-            fileId=file_id,
-            pageSize=page_size,
-            fields="revisions(id, mimeType, modifiedTime, size, originalFilename, keepForever, exportLinks)"
-        ).execute
-    )
+    params = {
+        "fileId": file_id,
+        "pageSize": page_size,
+        "fields": "nextPageToken, revisions(id, mimeType, modifiedTime, size, originalFilename, keepForever, exportLinks)"
+    }
+
+    if page_token:
+        params["pageToken"] = page_token
+
+    results = await asyncio.to_thread(service.revisions().list(**params).execute)
 
     revisions = results.get("revisions", [])
+    next_page_token = results.get("nextPageToken")
+
     if not revisions:
         return f"No revisions found for file '{file_metadata.get('name')}'."
 
@@ -1801,6 +1826,9 @@ async def list_drive_revisions(
             f"- ID: {rev['id']}, Modified: {rev.get('modifiedTime')}{size}, "
             f"Type: {rev.get('mimeType')}"
         )
+
+    if next_page_token:
+        output.append(f"\nNext page token: {next_page_token}")
 
     return "\n".join(output)
 
@@ -1860,6 +1888,7 @@ async def list_shared_drives(
     service,
     user_google_email: str,
     page_size: int = 50,
+    page_token: Optional[str] = None,
     use_domain_admin_access: bool = False,
 ) -> str:
     """
@@ -1868,6 +1897,7 @@ async def list_shared_drives(
     Args:
         user_google_email (str): The user's Google email address. Required.
         page_size (int): Max number of drives to return. Defaults to 50.
+        page_token (Optional[str]): Token for retrieving the next page of results.
         use_domain_admin_access (bool): Whether to request as a domain admin. Defaults to False.
 
     Returns:
@@ -1875,15 +1905,20 @@ async def list_shared_drives(
     """
     logger.info(f"[list_shared_drives] Listing shared drives")
 
-    results = await asyncio.to_thread(
-        service.drives().list(
-            pageSize=page_size,
-            useDomainAdminAccess=use_domain_admin_access,
-            fields="drives(id, name, createdTime, hidden)"
-        ).execute
-    )
+    params = {
+        "pageSize": page_size,
+        "useDomainAdminAccess": use_domain_admin_access,
+        "fields": "nextPageToken, drives(id, name, createdTime, hidden)"
+    }
+
+    if page_token:
+        params["pageToken"] = page_token
+
+    results = await asyncio.to_thread(service.drives().list(**params).execute)
 
     drives = results.get("drives", [])
+    next_page_token = results.get("nextPageToken")
+
     if not drives:
         return "No shared drives found."
 
@@ -1891,5 +1926,8 @@ async def list_shared_drives(
     for drive in drives:
         status = " (Hidden)" if drive.get("hidden") else ""
         output.append(f"- {drive['name']} (ID: {drive['id']}){status}, Created: {drive.get('createdTime')}")
+
+    if next_page_token:
+        output.append(f"\nNext page token: {next_page_token}")
 
     return "\n".join(output)

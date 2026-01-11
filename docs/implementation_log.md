@@ -134,3 +134,23 @@ This document tracks the progress of the Google Workspace MCP server implementat
 - [x] Implement `list_conference_records`
 - [x] Implement `get_conference_record`
 - [x] Update auth and configuration
+
+## Cross-cutting work (applies to all apps)
+
+### Tool tiering and discoverability
+- [x] Add `keep`, `admin_directory`, `admin_reports`, `people`, `meet` to `core/tool_tiers.yaml`
+- [x] Verified `keep`, `admin_directory`, `admin_reports`, `people`, `meet` are in `core/tool_tiers.yaml` with appropriate core/extended tier separation.
+
+### Auth modes
+- [x] Continue supporting user OAuth for end-user flows.
+- [x] Verified support for **service account + domain-wide delegation** via `GOOGLE_APPLICATION_CREDENTIALS` and `with_subject()`. This is handled by `auth/google_auth.py` and is available for admin operations and Keep.
+
+### Consistent pagination and batching
+- [x] Standardise `page_size` and `page_token` across list/search tools.
+    - Drive: Updated `search_drive_files`, `list_drive_items`, `list_drive_revisions`, `list_shared_drives` to include `page_token` and consistent `page_size`.
+    - Calendar: Updated `list_calendars` and `get_events` to include `page_token` and renamed `max_results` to `page_size`.
+    - Admin Directory: Renamed `max_results` to `page_size` in `list_users`, `list_groups`, `list_group_members`.
+    - Admin Reports: Renamed `max_results` to `page_size` in `list_admin_activities` and `list_drive_activities_via_reports`.
+    - People: Renamed `limit` to `page_size` in `search_contacts`.
+    - Sheets: Renamed `max_results` to `page_size` in `list_spreadsheets` and added `page_token`.
+    - Verified Gmail and Meet tools already conform to the standard.

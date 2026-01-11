@@ -304,22 +304,35 @@ def _correct_time_format_for_api(
 @server.tool()
 @handle_http_errors("list_calendars", is_read_only=True, service_type="calendar")
 @require_google_service("calendar", "calendar_read")
-async def list_calendars(service, user_google_email: str) -> str:
+async def list_calendars(
+    service,
+    user_google_email: str,
+    page_size: int = 100,
+    page_token: Optional[str] = None
+) -> str:
     """
     Retrieves a list of calendars accessible to the authenticated user.
 
     Args:
         user_google_email (str): The user's Google email address. Required.
+        page_size (int): The maximum number of calendars to return. Defaults to 100.
+        page_token (Optional[str]): Token for retrieving the next page of results.
 
     Returns:
         str: A formatted list of the user's calendars (summary, ID, primary status).
     """
     logger.info(f"[list_calendars] Invoked. Email: '{user_google_email}'")
 
+    request_params = {"maxResults": page_size}
+    if page_token:
+        request_params["pageToken"] = page_token
+
     calendar_list_response = await asyncio.to_thread(
-        lambda: service.calendarList().list().execute()
+        lambda: service.calendarList().list(**request_params).execute()
     )
     items = calendar_list_response.get("items", [])
+    next_page_token = calendar_list_response.get("nextPageToken")
+
     if not items:
         return f"No calendars found for {user_google_email}."
 
@@ -327,10 +340,15 @@ async def list_calendars(service, user_google_email: str) -> str:
         f'- "{cal.get("summary", "No Summary")}"{" (Primary)" if cal.get("primary") else ""} (ID: {cal["id"]})'
         for cal in items
     ]
+
     text_output = (
         f"Successfully listed {len(items)} calendars for {user_google_email}:\n"
         + "\n".join(calendars_summary_list)
     )
+
+    if next_page_token:
+        text_output += f"\nNext page token: {next_page_token}"
+
     logger.info(f"Successfully listed {len(items)} calendars for {user_google_email}.")
     return text_output
 
@@ -345,7 +363,8 @@ async def get_events(
     event_id: Optional[str] = None,
     time_min: Optional[str] = None,
     time_max: Optional[str] = None,
-    max_results: int = 25,
+    page_size: int = 25,
+    page_token: Optional[str] = None,
     query: Optional[str] = None,
     detailed: bool = False,
     include_attachments: bool = False,
@@ -359,8 +378,9 @@ async def get_events(
         calendar_id (str): The ID of the calendar to query. Use 'primary' for the user's primary calendar. Defaults to 'primary'. Calendar IDs can be obtained using `list_calendars`.
         event_id (Optional[str]): The ID of a specific event to retrieve. If provided, retrieves only this event and ignores time filtering parameters.
         time_min (Optional[str]): The start of the time range (inclusive) in RFC3339 format (e.g., '2024-05-12T10:00:00Z' or '2024-05-12'). If omitted, defaults to the current time. Ignored if event_id is provided.
-        time_max (Optional[str]): The end of the time range (exclusive) in RFC3339 format. If omitted, events starting from `time_min` onwards are considered (up to `max_results`). Ignored if event_id is provided.
-        max_results (int): The maximum number of events to return. Defaults to 25. Ignored if event_id is provided.
+        time_max (Optional[str]): The end of the time range (exclusive) in RFC3339 format. If omitted, events starting from `time_min` onwards are considered (up to `page_size`). Ignored if event_id is provided.
+        page_size (int): The maximum number of events to return. Defaults to 25. Ignored if event_id is provided.
+        page_token (Optional[str]): Token for retrieving the next page of results.
         query (Optional[str]): A keyword to search for within event fields (summary, description, location). Ignored if event_id is provided.
         detailed (bool): Whether to return detailed event information including description, location, attendees, and attendee details (response status, organizer, optional flags). Defaults to False.
         include_attachments (bool): Whether to include attachment information in detailed event output. When True, shows attachment details (fileId, fileUrl, mimeType, title) for events that have attachments. Only applies when detailed=True. Set this to True when you need to view or access files that have been attached to calendar events, such as meeting documents, presentations, or other shared files. Defaults to False.
@@ -381,6 +401,7 @@ async def get_events(
             .execute()
         )
         items = [event]
+        next_page_token = None
     else:
         # Handle multiple events retrieval with time filtering
         # Ensure time_min and time_max are correctly formatted for the API
@@ -406,7 +427,7 @@ async def get_events(
             )
 
         logger.info(
-            f"[get_events] Final API parameters - calendarId: '{calendar_id}', timeMin: '{effective_time_min}', timeMax: '{effective_time_max}', maxResults: {max_results}, query: '{query}'"
+            f"[get_events] Final API parameters - calendarId: '{calendar_id}', timeMin: '{effective_time_min}', timeMax: '{effective_time_max}', maxResults: {page_size}, query: '{query}'"
         )
 
         # Build the request parameters dynamically
@@ -414,7 +435,7 @@ async def get_events(
             "calendarId": calendar_id,
             "timeMin": effective_time_min,
             "timeMax": effective_time_max,
-            "maxResults": max_results,
+            "maxResults": page_size,
             "singleEvents": True,
             "orderBy": "startTime",
         }
@@ -422,10 +443,15 @@ async def get_events(
         if query:
             request_params["q"] = query
 
+        if page_token:
+            request_params["pageToken"] = page_token
+
         events_result = await asyncio.to_thread(
             lambda: service.events().list(**request_params).execute()
         )
         items = events_result.get("items", [])
+        next_page_token = events_result.get("nextPageToken")
+
     if not items:
         if event_id:
             return f"Event with ID '{event_id}' not found in calendar '{calendar_id}' for {user_google_email}."
@@ -529,6 +555,8 @@ async def get_events(
             f"Successfully retrieved {len(items)} events from calendar '{calendar_id}' for {user_google_email}:\n"
             + "\n".join(event_details_list)
         )
+        if next_page_token:
+            text_output += f"\nNext page token: {next_page_token}"
 
     logger.info(f"Successfully retrieved {len(items)} events for {user_google_email}.")
     return text_output

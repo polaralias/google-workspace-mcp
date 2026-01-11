@@ -178,6 +178,7 @@ DRIVE_QUERY_PATTERNS = [
 def build_drive_list_params(
     query: str,
     page_size: int,
+    page_token: Optional[str] = None,
     drive_id: Optional[str] = None,
     include_items_from_all_drives: bool = True,
     corpora: Optional[str] = None,
@@ -188,6 +189,7 @@ def build_drive_list_params(
     Args:
         query: The search query string
         page_size: Maximum number of items to return
+        page_token: Token for the next page of results
         drive_id: Optional shared drive ID
         include_items_from_all_drives: Whether to include items from all drives
         corpora: Optional corpus specification
@@ -202,6 +204,9 @@ def build_drive_list_params(
         "supportsAllDrives": True,
         "includeItemsFromAllDrives": include_items_from_all_drives,
     }
+
+    if page_token:
+        list_params["pageToken"] = page_token
 
     if drive_id:
         list_params["driveId"] = drive_id
