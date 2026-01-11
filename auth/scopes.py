@@ -92,6 +92,16 @@ ADMIN_REPORTS_USAGE_READONLY_SCOPE = (
     "https://www.googleapis.com/auth/admin.reports.usage.readonly"
 )
 
+# Google People API scopes
+PEOPLE_CONTACTS_SCOPE = "https://www.googleapis.com/auth/contacts"
+PEOPLE_CONTACTS_READONLY_SCOPE = "https://www.googleapis.com/auth/contacts.readonly"
+PEOPLE_DIRECTORY_READONLY_SCOPE = "https://www.googleapis.com/auth/directory.readonly"
+
+# Google Meet API scopes
+MEET_CONFERENCE_RECORDS_READONLY_SCOPE = (
+    "https://www.googleapis.com/auth/meetings.conference.media.readonly"
+)
+
 # Base OAuth scopes required for user identification
 BASE_SCOPES = [USERINFO_EMAIL_SCOPE, USERINFO_PROFILE_SCOPE, OPENID_SCOPE]
 
@@ -143,6 +153,16 @@ ADMIN_REPORTS_SCOPES = [
     ADMIN_REPORTS_USAGE_READONLY_SCOPE,
 ]
 
+PEOPLE_SCOPES = [
+    PEOPLE_CONTACTS_SCOPE,
+    PEOPLE_CONTACTS_READONLY_SCOPE,
+    PEOPLE_DIRECTORY_READONLY_SCOPE,
+]
+
+MEET_SCOPES = [
+    MEET_CONFERENCE_RECORDS_READONLY_SCOPE,
+]
+
 # Tool-to-scopes mapping
 TOOL_SCOPES_MAP = {
     "gmail": GMAIL_SCOPES,
@@ -158,6 +178,8 @@ TOOL_SCOPES_MAP = {
     "search": CUSTOM_SEARCH_SCOPES,
     "admin_directory": ADMIN_DIRECTORY_SCOPES,
     "admin_reports": ADMIN_REPORTS_SCOPES,
+    "people": PEOPLE_SCOPES,
+    "meet": MEET_SCOPES,
 }
 
 

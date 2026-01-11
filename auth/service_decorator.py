@@ -53,6 +53,10 @@ from auth.scopes import (
     ADMIN_DIRECTORY_GROUP_MEMBER_READONLY_SCOPE,
     ADMIN_REPORTS_AUDIT_READONLY_SCOPE,
     ADMIN_REPORTS_USAGE_READONLY_SCOPE,
+    PEOPLE_CONTACTS_SCOPE,
+    PEOPLE_CONTACTS_READONLY_SCOPE,
+    PEOPLE_DIRECTORY_READONLY_SCOPE,
+    MEET_CONFERENCE_RECORDS_READONLY_SCOPE,
 )
 
 logger = logging.getLogger(__name__)
@@ -399,6 +403,8 @@ SERVICE_CONFIGS = {
     "customsearch": {"service": "customsearch", "version": "v1"},
     "admin_directory": {"service": "admin", "version": "directory_v1"},
     "admin_reports": {"service": "admin", "version": "reports_v1"},
+    "people": {"service": "people", "version": "v1"},
+    "meet": {"service": "meet", "version": "v2"},
 }
 
 
@@ -453,6 +459,12 @@ SCOPE_GROUPS = {
     # Admin Reports scopes
     "admin_reports_audit_readonly": ADMIN_REPORTS_AUDIT_READONLY_SCOPE,
     "admin_reports_usage_readonly": ADMIN_REPORTS_USAGE_READONLY_SCOPE,
+    # People scopes
+    "people_contacts": PEOPLE_CONTACTS_SCOPE,
+    "people_contacts_read": PEOPLE_CONTACTS_READONLY_SCOPE,
+    "people_directory_read": PEOPLE_DIRECTORY_READONLY_SCOPE,
+    # Meet scopes
+    "meet_conference_records_read": MEET_CONFERENCE_RECORDS_READONLY_SCOPE,
 }
 
 
