@@ -333,3 +333,127 @@ async def delete_contact(
     )
 
     return f"Contact {resource_name} deleted successfully."
+
+
+@server.tool()
+@require_google_service("people", "people_contacts_read")
+@handle_http_errors("list_other_contacts", service_type="people")
+async def list_other_contacts(
+    service,
+    user_google_email: str,
+    page_size: int = 100,
+    page_token: Optional[str] = None,
+    read_mask: str = "names,emailAddresses,phoneNumbers",
+) -> str:
+    """
+    List "Other contacts" (frequently contacted).
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        page_size (int): Number of contacts to return per page. Defaults to 100.
+        page_token (Optional[str]): Token for the next page of results.
+        read_mask (str): Comma-separated list of fields to fetch. Defaults to "names,emailAddresses,phoneNumbers".
+
+    Returns:
+        str: A list of other contacts.
+    """
+    logger.info(f"[list_other_contacts] Invoked. Email: '{user_google_email}'")
+
+    params = {
+        "pageSize": page_size,
+        "readMask": read_mask,
+    }
+    if page_token:
+        params["pageToken"] = page_token
+
+    result = await asyncio.to_thread(
+        service.otherContacts().list(**params).execute
+    )
+
+    other_contacts = result.get("otherContacts", [])
+    next_page_token = result.get("nextPageToken")
+
+    if not other_contacts:
+        return "No other contacts found."
+
+    output = [f"Found {len(other_contacts)} other contacts:"]
+    for contact in other_contacts:
+        resource_name = contact.get("resourceName")
+
+        names = contact.get("names", [])
+        display_name = names[0].get("displayName") if names else "Unknown Name"
+
+        emails = contact.get("emailAddresses", [])
+        email_list = [e.get("value") for e in emails]
+        email_str = ", ".join(email_list) if email_list else "No Email"
+
+        output.append(f"- {display_name} ({email_str}) [{resource_name}]")
+
+    if next_page_token:
+        output.append(f"\nNext page token: {next_page_token}")
+
+    return "\n".join(output)
+
+
+@server.tool()
+@require_google_service("people", "people_directory_read")
+@handle_http_errors("search_directory_people", service_type="people")
+async def search_directory_people(
+    service,
+    user_google_email: str,
+    query: str,
+    read_mask: str = "names,emailAddresses,phoneNumbers",
+    page_size: int = 10,
+    page_token: Optional[str] = None,
+) -> str:
+    """
+    Search the directory for people.
+
+    Args:
+        user_google_email (str): The user's Google email address. Required.
+        query (str): The search query.
+        read_mask (str): Comma-separated list of fields to fetch. Defaults to "names,emailAddresses,phoneNumbers".
+        page_size (int): Maximum number of results to return. Defaults to 10.
+        page_token (Optional[str]): Token for the next page of results.
+
+    Returns:
+        str: Search results from the directory.
+    """
+    logger.info(f"[search_directory_people] Invoked. Email: '{user_google_email}', Query: '{query}'")
+
+    params = {
+        "query": query,
+        "readMask": read_mask,
+        "pageSize": page_size,
+        "sources": ["DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE", "DIRECTORY_SOURCE_TYPE_DOMAIN_CONTACT"]
+    }
+    if page_token:
+        params["pageToken"] = page_token
+
+    result = await asyncio.to_thread(
+        service.people().searchDirectoryPeople(**params).execute
+    )
+
+    people = result.get("people", [])
+    next_page_token = result.get("nextPageToken")
+
+    if not people:
+        return f"No directory people found matching '{query}'."
+
+    output = [f"Found {len(people)} directory matches:"]
+    for person in people:
+        resource_name = person.get("resourceName")
+
+        names = person.get("names", [])
+        display_name = names[0].get("displayName") if names else "Unknown Name"
+
+        emails = person.get("emailAddresses", [])
+        email_list = [e.get("value") for e in emails]
+        email_str = ", ".join(email_list) if email_list else "No Email"
+
+        output.append(f"- {display_name} ({email_str}) [{resource_name}]")
+
+    if next_page_token:
+        output.append(f"\nNext page token: {next_page_token}")
+
+    return "\n".join(output)

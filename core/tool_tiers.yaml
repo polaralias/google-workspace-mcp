@@ -61,6 +61,7 @@ calendar:
   extended:
     - delete_event
     - get_free_busy
+    - suggest_meeting_times
     - list_calendar_acl
     - create_calendar_acl_rule
     - delete_calendar_acl_rule
@@ -239,11 +240,16 @@ people:
     - update_contact
   extended:
     - delete_contact
+    - list_other_contacts
+    - search_directory_people
   complete: []
 
 meet:
   core:
     - list_conference_records
     - get_conference_record
-  extended: []
+  extended:
+    - list_conference_participants
+    - list_conference_recordings
+    - list_conference_transcripts
   complete: []
