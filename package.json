@@ -1,0 +1,17 @@
+{
+  "name": "mcp-integration-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal MCP integration backend with user-bound API keys and OAuth 2.0 PKCE.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "cli": "node src/cli.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "pg": "^8.12.0"
+  }
+}
