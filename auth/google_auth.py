@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple, Dict, Any
 from urllib.parse import parse_qs, urlparse
 
 from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
 from google.auth.exceptions import RefreshError
@@ -530,7 +531,8 @@ def get_credentials(
     session_id: Optional[str] = None,
 ) -> Optional[Credentials]:
     """
-    Retrieves stored credentials, prioritizing OAuth 2.1 store, then session, then file. Refreshes if necessary.
+    Retrieves stored credentials, prioritizing Service Account (if configured),
+    then OAuth 2.1 store, then session, then file. Refreshes if necessary.
     If credentials are loaded from file and a session_id is present, they are cached in the session.
     In single-user mode, bypasses session mapping and uses any available credentials.
 
@@ -544,6 +546,29 @@ def get_credentials(
     Returns:
         Valid Credentials object or None.
     """
+
+    # Check for Service Account credentials first (Environment Variable)
+    # This supports server-to-server scenarios and Domain-Wide Delegation
+    sa_creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if sa_creds_path and os.path.exists(sa_creds_path):
+        try:
+            logger.info(f"[get_credentials] Attempting to load Service Account credentials from {sa_creds_path}")
+            creds = service_account.Credentials.from_service_account_file(
+                sa_creds_path, scopes=required_scopes
+            )
+
+            # If a user email is provided, attempt Domain-Wide Delegation (DWD)
+            if user_google_email:
+                logger.info(f"[get_credentials] Applying Domain-Wide Delegation for user: {user_google_email}")
+                creds = creds.with_subject(user_google_email)
+            else:
+                 logger.info("[get_credentials] Using Service Account directly (no impersonation)")
+
+            return creds
+        except Exception as e:
+            logger.error(f"[get_credentials] Failed to load Service Account credentials: {e}", exc_info=True)
+            # Fall through to other methods if SA loading fails
+
     # First, try OAuth 2.1 session store if we have a session_id (FastMCP session)
     if session_id:
         try:
@@ -900,7 +925,7 @@ async def get_authenticated_google_service(
         log_user_email = user_google_email
 
         # Try to get email from credentials if needed for validation
-        if credentials and credentials.id_token:
+        if credentials and hasattr(credentials, "id_token") and credentials.id_token:
             try:
                 # Decode without verification (just to get email for logging)
                 decoded_token = jwt.decode(
@@ -912,6 +937,9 @@ async def get_authenticated_google_service(
                     logger.info(f"[{tool_name}] Token email: {token_email}")
             except Exception as e:
                 logger.debug(f"[{tool_name}] Could not decode id_token: {e}")
+        elif hasattr(credentials, "service_account_email"):
+             log_user_email = credentials.service_account_email
+             logger.info(f"[{tool_name}] Service Account email: {log_user_email}")
 
         logger.info(
             f"[{tool_name}] Successfully authenticated {service_name} service for user: {log_user_email}"
