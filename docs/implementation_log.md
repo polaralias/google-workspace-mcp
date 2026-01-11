@@ -8,6 +8,7 @@ This document tracks the progress of the Google Workspace MCP server implementat
 - [x] Updated `core/tool_tiers.yaml` to include missing Gmail and Sheets tools.
     - Gmail: Added `list_gmail_filters` to core tier; `create_gmail_filter`, `delete_gmail_filter` to extended tier.
     - Sheets: Added `format_sheet_range` to core tier; `add_conditional_formatting`, `update_conditional_formatting`, `delete_conditional_formatting` to extended tier.
+- [x] Refreshed README tool inventory so it matches what is actually registered.
 
 ### 0.2 Add enablement links for new APIs you’ll introduce
 - [x] Updated `core/api_enablement.py` with enablement links and service mappings for:
