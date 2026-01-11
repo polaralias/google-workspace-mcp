@@ -26,10 +26,10 @@ USER app
 
 # Default environment variables
 ENV NODE_ENV=production
-ENV PORT=8000
+ENV PORT=3000
 
 # Expose port
-EXPOSE 8000
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

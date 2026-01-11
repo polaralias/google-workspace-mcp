@@ -22,7 +22,7 @@ if (!config.DATABASE_URL) {
 
 const app = express();
 app.disable('x-powered-by');
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 app.use(express.json({ limit: '200kb' }));
 app.use(cookieParser());
 

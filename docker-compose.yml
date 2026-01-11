@@ -3,11 +3,11 @@ services:
     build: .
     container_name: gws_mcp
     ports:
-      - "8000:8000"
+      - "3000:3000"
     environment:
       - GOOGLE_MCP_CREDENTIALS_DIR=/app/store_creds
       - DATABASE_URL=postgres://gws_mcp:gws_mcp@db:5432/gws_mcp
-      - PORT=8000
+      - PORT=3000
       - MASTER_KEY=${MASTER_KEY}
       - API_KEY_MODE=user_bound
       - REDIRECT_URI_ALLOWLIST=localhost,127.0.0.1
