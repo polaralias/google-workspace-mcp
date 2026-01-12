@@ -9,6 +9,8 @@ import { runMigrations, query, withTransaction } from './db';
 import { encryptJson, sha256Hex, randomToken, base64url } from './crypto';
 import { getSchema, validateConfig, splitSecrets } from './configSchema';
 import { GoogleMcpServer } from './mcp';
+import { google } from 'googleapis';
+import { credentialStore } from './auth/credentialStore';
 
 if (!config.MASTER_KEY) {
   console.error('MASTER_KEY is required');
@@ -24,7 +26,7 @@ const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', true);
 app.use(express.json({ limit: '200kb' }));
-app.use(cookieParser());
+app.use(cookieParser(config.MASTER_KEY));
 
 const publicDir = path.join(__dirname, 'public');
 const apiKeyModeEnabled = config.API_KEY_MODE === 'user_bound';
@@ -145,6 +147,153 @@ app.post('/api/api-keys', apiKeyLimiter, async (req: Request, res: Response) => 
   } catch (err) {
     console.error('Failed to issue API key', err);
     res.status(500).json({ error: 'Failed to issue API key' });
+  }
+});
+
+app.get('/api/oauth-status', (req: Request, res: Response) => {
+  res.json({
+    configured: !!(config.GOOGLE_OAUTH_CLIENT_ID && config.GOOGLE_OAUTH_CLIENT_SECRET)
+  });
+});
+
+app.post('/auth/init-custom', (req: Request, res: Response) => {
+  const { clientId, clientSecret } = req.body;
+  if (!clientId || !clientSecret) {
+    res.status(400).json({ error: 'Missing credentials' });
+    return;
+  }
+
+  res.cookie('oauth_config', { clientId, clientSecret }, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    signed: true,
+    maxAge: 10 * 60 * 1000 // 10 minutes
+  });
+
+  res.json({ status: 'ok' });
+});
+
+app.get('/auth/google', (req: Request, res: Response) => {
+  const customConfig = req.signedCookies.oauth_config;
+  const clientId = customConfig?.clientId || config.GOOGLE_OAUTH_CLIENT_ID;
+  const clientSecret = customConfig?.clientSecret || config.GOOGLE_OAUTH_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    res.redirect('/connect?error=server_not_configured');
+    return;
+  }
+
+  const oauth2Client = new google.auth.OAuth2(
+    clientId,
+    clientSecret,
+    `${req.protocol}://${req.get('host')}/auth/google/callback`
+  );
+
+  // Encode MCP params into state
+  const state = base64url(Buffer.from(JSON.stringify(req.query), 'utf-8'));
+
+  const url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/drive',
+      'https://www.googleapis.com/auth/gmail.modify',
+      'https://www.googleapis.com/auth/tasks'
+    ],
+    state: state,
+    prompt: 'consent' // Force refresh token
+  });
+
+  res.redirect(url);
+});
+
+app.get('/auth/google/callback', async (req: Request, res: Response) => {
+  const { code, state } = req.query;
+
+  if (!code || !state) {
+    res.status(400).send('Invalid callback parameters');
+    return;
+  }
+
+  try {
+    // 1. Recover MCP params
+    const mcpParamsJson = Buffer.from(state as string, 'base64url').toString('utf-8');
+    const mcpParams = JSON.parse(mcpParamsJson);
+    const { client_id, redirect_uri, code_challenge, code_challenge_method } = mcpParams;
+
+    // 2. Setup OAuth Client
+    const customConfig = req.signedCookies.oauth_config;
+    const googleClientId = customConfig?.clientId || config.GOOGLE_OAUTH_CLIENT_ID;
+    const googleClientSecret = customConfig?.clientSecret || config.GOOGLE_OAUTH_CLIENT_SECRET;
+
+    if (!googleClientId || !googleClientSecret) {
+      res.status(500).send('OAuth configuration missing');
+      return;
+    }
+
+    const oauth2Client = new google.auth.OAuth2(
+      googleClientId,
+      googleClientSecret,
+      `${req.protocol}://${req.get('host')}/auth/google/callback`
+    );
+
+    // 3. Exchange Code
+    const { tokens } = await oauth2Client.getToken(code as string);
+    oauth2Client.setCredentials(tokens);
+
+    // 4. Get User Email
+    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+    const userInfo = await oauth2.userinfo.get();
+    const email = userInfo.data.email;
+
+    if (!email) {
+      res.status(500).send('Failed to get user email');
+      return;
+    }
+
+    // 5. Store Credentials
+    await credentialStore.storeCredential(email, tokens);
+
+    // 6. Create MCP Connection (Standard Logic)
+    // We construct a synthetic config compatible with our schema
+    const connectionConfig = {
+      apiKey: "managed-by-oauth", // Placeholder
+      teamId: "personal",
+      scopes: "google-workspace"
+    };
+
+    const connectionId = crypto.randomUUID();
+    const authCode = randomToken('mcp_cd_', 20);
+    const authCodeHash = sha256Hex(authCode);
+    const expiresAt = new Date(Date.now() + config.CODE_TTL_SECONDS * 1000);
+
+    // Encrypt empty secrets since we use credentialStore
+    const encryptedSecrets = encryptJson(config.MASTER_KEY, {});
+
+    await withTransaction(async client => {
+      await client.query(
+        'INSERT INTO connections (id, client_id, name, encrypted_secrets, config) VALUES ($1, $2, $3, $4, $5)',
+        [connectionId, client_id, `Google (${email})`, encryptedSecrets, JSON.stringify(connectionConfig)]
+      );
+      await client.query(
+        'INSERT INTO auth_codes (code_hash, connection_id, code_challenge, code_challenge_method, expires_at) VALUES ($1, $2, $3, $4, $5)',
+        [authCodeHash, connectionId, code_challenge, code_challenge_method, expiresAt]
+      );
+    });
+
+    // 7. Redirect back to MCP Client
+    const redirectUrl = new URL(redirect_uri);
+    redirectUrl.searchParams.set('code', authCode);
+    if (mcpParams.state) {
+      redirectUrl.searchParams.set('state', mcpParams.state);
+    }
+
+    res.redirect(redirectUrl.toString());
+
+  } catch (err: any) {
+    console.error('OAuth callback failed', err);
+    res.status(500).send(`Authentication failed: ${err.message}`);
   }
 });
 

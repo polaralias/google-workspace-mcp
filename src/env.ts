@@ -37,6 +37,8 @@ export const config = {
   REDIRECT_URI_ALLOWLIST: process.env.REDIRECT_URI_ALLOWLIST || '',
   CODE_TTL_SECONDS: Number(process.env.CODE_TTL_SECONDS || '90'),
   TOKEN_TTL_SECONDS: Number(process.env.TOKEN_TTL_SECONDS || '3600'),
-  PORT: Number(process.env.PORT || '3000')
+  PORT: Number(process.env.PORT || '3000'),
+  GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID || '',
+  GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET || ''
 };
 
