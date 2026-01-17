@@ -1,31 +1,53 @@
-# ---- Python artefacts --------------------------------------------------
-__pycache__/
-*.py[cod]
-*.so
-.mcp.json
-claude.md
-
-# ---- Packaging ---------------------------------------------------------
-*.egg-info/
-build/
+# ---- Node.js ----------------------------------------------------------------
+node_modules/
 dist/
+*. log
+npm-debug.log*
 
-# ---- Environments & tooling -------------------------------------------
+# ---- Build artifacts --------------------------------------------------------
+build/
+*. tsbuildinfo
+
+# ---- Environment & secrets --------------------------------------------------
 .env
-.venv/
-venv/
+.env.local
+.env.*. local
+! .env.example
+client_secret.json
+*. pem
+*.key
+
+# ---- Credentials ------------------------------------------------------------
+/. credentials
+/. google_workspace_mcp
+*. enc
+
+# ---- IDE & editors ----------------------------------------------------------
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
 
-# ---- macOS clutter -----------------------------------------------------
+# ---- macOS ------------------------------------------------------------------
 .DS_Store
+. AppleDouble
+.LSOverride
 
-# ---- Secrets -----------------------------------------------------------
-client_secret.json
+# ---- Testing ----------------------------------------------------------------
+coverage/
+. nyc_output/
 
-# ---- Logs --------------------------------------------------------------
+# ---- Project specific -------------------------------------------------------
 mcp_server_debug.log
+/. claude
+.mcp. json
+claude. md
 
-# ---- Local development files -------------------------------------------
-/.credentials
-/.claude
+# ---- Python (legacy/tools) --------------------------------------------------
+__pycache__/
+*. py[cod]
+*. so
+*. egg-info/
+. venv/
+venv/

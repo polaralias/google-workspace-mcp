@@ -2,7 +2,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import { decryptJson, encryptJson } from '../crypto';
 import { config } from '../env';
+import { validateEmail } from '../utils/validation';
 
 export interface StoredCredential {
     access_token?: string;
@@ -40,10 +42,15 @@ export class CredentialStore {
 
     async getCredential(userEmail: string): Promise<OAuth2Client | null> {
         await this.ensureDir();
-        const credsPath = this.getCredentialPath(userEmail);
+        const sanitizedEmail = validateEmail(userEmail);
+        if (!sanitizedEmail || !config.MASTER_KEY) {
+            return null;
+        }
+
+        const credsPath = this.getCredentialPath(sanitizedEmail);
         try {
             const data = await fs.readFile(credsPath, 'utf8');
-            const json = JSON.parse(data) as StoredCredential;
+            const json = decryptJson(config.MASTER_KEY, data) as StoredCredential;
 
             const client = new google.auth.OAuth2(
                 process.env.GOOGLE_OAUTH_CLIENT_ID,
@@ -59,8 +66,17 @@ export class CredentialStore {
 
     async storeCredential(userEmail: string, credentials: any): Promise<void> {
         await this.ensureDir();
-        const credsPath = this.getCredentialPath(userEmail);
-        await fs.writeFile(credsPath, JSON.stringify(credentials, null, 2));
+        const sanitizedEmail = validateEmail(userEmail);
+        if (!sanitizedEmail) {
+            throw new Error('Invalid email address');
+        }
+        if (!config.MASTER_KEY) {
+            throw new Error('MASTER_KEY is required to store credentials');
+        }
+
+        const credsPath = this.getCredentialPath(sanitizedEmail);
+        const encrypted = encryptJson(config.MASTER_KEY, credentials);
+        await fs.writeFile(credsPath, encrypted);
     }
 }
 
