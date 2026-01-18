@@ -5,7 +5,7 @@
   "description": "Minimal MCP integration backend with user-bound API keys and OAuth 2.0 PKCE.",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-public.js",
     "start": "node dist/server.js",
     "cli": "ts-node src/cli.ts",
     "dev": "ts-node src/server.ts"
