@@ -1,7 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
 import { decryptJson, encryptJson } from '../crypto';
 import { config } from '../env';
 import { validateEmail } from '../utils/validation';
@@ -13,6 +12,8 @@ export interface StoredCredential {
     token_type?: string;
     expiry_date?: number;
 }
+
+type OAuth2Client = InstanceType<typeof google.auth.OAuth2>;
 
 export class CredentialStore {
     private baseDir: string;
