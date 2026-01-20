@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const loading = document.getElementById('loading');
     const googleContainer = document.getElementById('google-signin-container');
-    const manualContainer = document.getElementById('manual-config-container');
     const errorMsg = document.getElementById('error-msg');
 
     // Check for errors in URL
@@ -21,7 +20,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (configured) {
             googleContainer.classList.remove('hidden');
         } else {
-            manualContainer.classList.remove('hidden');
+            errorMsg.innerText = 'Server not configured. Please set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET environment variables.';
+            errorMsg.classList.remove('hidden');
         }
     } catch (e) {
         loading.classList.add('hidden');
@@ -35,36 +35,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         const currentSearch = window.location.search;
         window.location.href = `/auth/google${currentSearch}`;
     };
-
-    // Manual Config Form
-    document.getElementById('config-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = e.target.querySelector('button');
-        const originalText = btn.innerText;
-        btn.innerText = 'Saving...';
-        btn.disabled = true;
-
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
-
-        try {
-            const res = await fetch('/auth/init-custom', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (!res.ok) throw new Error('Failed to save configuration');
-
-            // On success, proceed to Google Auth
-            const currentSearch = window.location.search;
-            window.location.href = `/auth/google${currentSearch}`;
-
-        } catch (err) {
-            errorMsg.innerText = err.message;
-            errorMsg.classList.remove('hidden');
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
-    });
 });

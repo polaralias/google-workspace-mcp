@@ -156,27 +156,9 @@ app.get('/api/oauth-status', (req: Request, res: Response) => {
   });
 });
 
-app.post('/auth/init-custom', (req: Request, res: Response) => {
-  const { clientId, clientSecret } = req.body;
-  if (!clientId || !clientSecret) {
-    res.status(400).json({ error: 'Missing credentials' });
-    return;
-  }
-
-  res.cookie('oauth_config', { clientId, clientSecret }, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    signed: true,
-    maxAge: 10 * 60 * 1000 // 10 minutes
-  });
-
-  res.json({ status: 'ok' });
-});
-
 app.get('/auth/google', (req: Request, res: Response) => {
-  const customConfig = req.signedCookies.oauth_config;
-  const clientId = customConfig?.clientId || config.GOOGLE_OAUTH_CLIENT_ID;
-  const clientSecret = customConfig?.clientSecret || config.GOOGLE_OAUTH_CLIENT_SECRET;
+  const clientId = config.GOOGLE_OAUTH_CLIENT_ID;
+  const clientSecret = config.GOOGLE_OAUTH_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     res.redirect('/connect?error=server_not_configured');
@@ -223,9 +205,8 @@ app.get('/auth/google/callback', async (req: Request, res: Response) => {
     const { client_id, redirect_uri, code_challenge, code_challenge_method } = mcpParams;
 
     // 2. Setup OAuth Client
-    const customConfig = req.signedCookies.oauth_config;
-    const googleClientId = customConfig?.clientId || config.GOOGLE_OAUTH_CLIENT_ID;
-    const googleClientSecret = customConfig?.clientSecret || config.GOOGLE_OAUTH_CLIENT_SECRET;
+    const googleClientId = config.GOOGLE_OAUTH_CLIENT_ID;
+    const googleClientSecret = config.GOOGLE_OAUTH_CLIENT_SECRET;
 
     if (!googleClientId || !googleClientSecret) {
       res.status(500).send('OAuth configuration missing');
