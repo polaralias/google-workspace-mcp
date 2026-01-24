@@ -5,14 +5,26 @@ const redirectUri = urlParams.get('redirect_uri') || urlParams.get('callback_url
 const state = urlParams.get('state');
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const oauthUrl = `${window.location.protocol}//${window.location.host}/oauth`;
+    const oauthUrlEl = document.getElementById('oauth-url');
+    if (oauthUrlEl) oauthUrlEl.innerText = oauthUrl;
+
+    const googleBtn = document.getElementById('google-signin-btn');
+    if (googleBtn) {
+        googleBtn.onclick = triggerGoogleAuth;
+    }
+
+    checkAuthStatus();
+
     try {
         const res = await fetch(`${API_BASE}/config-schema`);
         if (res.ok) {
             const schema = await res.json();
             renderConfigForm(schema);
             document.getElementById('view-config-entry').classList.remove('hidden');
-            await fetchConfigStatus();
-            return;
+
+            // Re-check auth status to fill in form fields
+            checkAuthStatus();
         }
     } catch (e) {
         console.error('Failed to load config schema', e);
@@ -20,6 +32,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await fetchConfigStatus();
 });
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function checkAuthStatus() {
+    const email = getCookie('mcp_auth_email');
+    const notAuth = document.getElementById('not-authenticated');
+    const authUser = document.getElementById('authenticated-user');
+    const emailDisplay = document.getElementById('user-email-display');
+
+    if (email && notAuth && authUser) {
+        notAuth.classList.add('hidden');
+        authUser.classList.remove('hidden');
+        const decodedEmail = decodeURIComponent(email);
+        if (emailDisplay) emailDisplay.innerText = decodedEmail;
+
+        // Auto-fill userEmail field in form if it exists
+        const emailInput = document.getElementById('userEmail');
+        if (emailInput && !emailInput.value) {
+            emailInput.value = decodedEmail;
+        }
+    }
+}
+
+window.triggerGoogleAuth = () => {
+    window.location.href = '/auth/google';
+};
+
+window.copyOAuthUrl = async () => {
+    const url = document.getElementById('oauth-url').innerText;
+    try {
+        await navigator.clipboard.writeText(url);
+        const btn = document.querySelector('button[onclick="copyOAuthUrl()"]');
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => (btn.innerText = originalText), 1500);
+    } catch (e) {
+        alert('Copy failed');
+    }
+};
 
 async function fetchConfigStatus() {
     const banner = document.getElementById('config-status-banner');

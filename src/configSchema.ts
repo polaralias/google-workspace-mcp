@@ -23,11 +23,11 @@ const defaultSchema: ConfigSchema = {
       sensitive: true
     },
     {
-      name: 'teamId',
-      label: 'Team ID',
+      name: 'userEmail',
+      label: 'Google Email',
       type: 'text',
       required: true,
-      description: 'Identifier for the target team or workspace.'
+      description: 'The Google email address associated with the account you authorized.'
     },
     {
       name: 'scopes',
@@ -35,7 +35,7 @@ const defaultSchema: ConfigSchema = {
       type: 'text',
       format: 'csv',
       required: false,
-      description: 'Comma-separated list of scopes to request.'
+      description: 'Optional: Comma-separated list of scopes.'
     }
   ]
 };

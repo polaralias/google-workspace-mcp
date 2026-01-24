@@ -54,8 +54,8 @@ export class CredentialStore {
             const json = decryptJson(config.MASTER_KEY, data) as StoredCredential;
 
             const client = new google.auth.OAuth2(
-                process.env.GOOGLE_OAUTH_CLIENT_ID,
-                process.env.GOOGLE_OAUTH_CLIENT_SECRET
+                config.GOOGLE_OAUTH_CLIENT_ID,
+                config.GOOGLE_OAUTH_CLIENT_SECRET
             );
 
             client.setCredentials(json);

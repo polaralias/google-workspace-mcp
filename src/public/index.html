@@ -29,6 +29,47 @@
             </div>
         </div>
 
+        <div class="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h2 class="text-sm font-semibold text-blue-800 mb-1">OAuth Connection</h2>
+            <p class="text-sm text-blue-700">
+                If your MCP client supports OAuth (e.g. Cursor, Cline), use the following URL to connect:
+            </p>
+            <div class="mt-2 flex items-center gap-2">
+                <code id="oauth-url"
+                    class="bg-white px-2 py-1 rounded border border-blue-200 text-blue-900 text-xs"></code>
+                <button onclick="copyOAuthUrl()"
+                    class="text-xs text-blue-600 hover:text-blue-800 underline">Copy</button>
+            </div>
+        </div>
+
+        <!-- Google Sign In for Portal -->
+        <div id="google-auth-section" class="mb-8 p-4 border border-gray-200 rounded-lg">
+            <h2 class="text-sm font-semibold text-gray-800 mb-2">Authenticated Setup (Recommended)</h2>
+            <p class="text-sm text-gray-600 mb-4">
+                Sign in with Google to securely authorize this server to your account before generating a key.
+            </p>
+            <div id="auth-status-loading" class="text-sm text-gray-500 mb-4 hidden">Checking auth status...</div>
+            <div id="not-authenticated" class="">
+                <button id="google-signin-btn"
+                    class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors shadow-sm">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google">
+                    Sign in with Google
+                </button>
+            </div>
+            <div id="authenticated-user"
+                class="hidden flex items-center justify-between bg-green-50 p-3 rounded-lg border border-green-100">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">✅</span>
+                    <div>
+                        <p class="text-sm font-semibold text-green-800">Signed in</p>
+                        <p id="user-email-display" class="text-xs text-green-700"></p>
+                    </div>
+                </div>
+                <button onclick="triggerGoogleAuth()" class="text-xs text-blue-600 hover:underline">Change
+                    Account</button>
+            </div>
+        </div>
+
         <div id="view-config-entry" class="hidden">
             <form id="user-bound-form" class="space-y-6">
                 <div id="config-fields-container" class="space-y-4"></div>

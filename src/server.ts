@@ -77,6 +77,14 @@ function verifyPkce(method: string, codeChallenge: string, verifier: string): bo
   return base64url(digest) === codeChallenge;
 }
 
+function getGoogleRedirectUri(req: Request): string {
+  if (config.GOOGLE_OAUTH_REDIRECT_URI) {
+    return config.GOOGLE_OAUTH_REDIRECT_URI;
+  }
+  const baseUrl = config.WORKSPACE_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
+  return `${baseUrl}/auth/google/callback`;
+}
+
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', encryption: getMasterKeyInfo().status });
 });
@@ -98,7 +106,21 @@ app.get('/api/connect-schema', (req: Request, res: Response) => {
   res.json(getSchema());
 });
 
+app.get('/oauth', (req: Request, res: Response) => {
+  // If it's a browser request (not looking for the well-known config directly),
+  // redirect to the connection page.
+  res.redirect('/connect' + (Object.keys(req.query).length ? '?' + new URLSearchParams(req.query as any).toString() : ''));
+});
+
 app.get('/.well-known/mcp-configuration', (req: Request, res: Response) => {
+  res.json({
+    sse: {
+      endpoint: '/sse'
+    }
+  });
+});
+
+app.get('/oauth/.well-known/mcp-configuration', (req: Request, res: Response) => {
   res.json({
     sse: {
       endpoint: '/sse'
@@ -106,7 +128,7 @@ app.get('/.well-known/mcp-configuration', (req: Request, res: Response) => {
     oauth: {
       authorizationUrl: '/connect',
       tokenUrl: '/token',
-      scope: 'https://www.googleapis.com/auth/userinfo.email'
+      scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/tasks'
     }
   });
 });
@@ -186,7 +208,7 @@ app.get('/auth/google', (req: Request, res: Response) => {
   const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
-    `${req.protocol}://${req.get('host')}/auth/google/callback`
+    getGoogleRedirectUri(req)
   );
 
   // Encode MCP params into state
@@ -222,6 +244,8 @@ app.get('/auth/google/callback', async (req: Request, res: Response) => {
     const mcpParams = JSON.parse(mcpParamsJson);
     const { client_id, redirect_uri, code_challenge, code_challenge_method } = mcpParams;
 
+    const isPortalLogin = !client_id || !redirect_uri;
+
     // 2. Setup OAuth Client
     const customConfig = req.signedCookies.oauth_config;
     const googleClientId = customConfig?.clientId || config.GOOGLE_OAUTH_CLIENT_ID;
@@ -235,7 +259,7 @@ app.get('/auth/google/callback', async (req: Request, res: Response) => {
     const oauth2Client = new google.auth.OAuth2(
       googleClientId,
       googleClientSecret,
-      `${req.protocol}://${req.get('host')}/auth/google/callback`
+      getGoogleRedirectUri(req)
     );
 
     // 3. Exchange Code
@@ -255,11 +279,21 @@ app.get('/auth/google/callback', async (req: Request, res: Response) => {
     // 5. Store Credentials
     await credentialStore.storeCredential(email, tokens);
 
+    if (isPortalLogin) {
+      res.cookie('mcp_auth_email', email, {
+        httpOnly: false, // UI needs to read this for display
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 3600 * 1000 // 1 hour
+      });
+      res.redirect('/?auth=success');
+      return;
+    }
+
     // 6. Create MCP Connection (Standard Logic)
     // We construct a synthetic config compatible with our schema
     const connectionConfig = {
       apiKey: "managed-by-oauth", // Placeholder
-      teamId: "personal",
+      userEmail: email,
       scopes: "google-workspace"
     };
 

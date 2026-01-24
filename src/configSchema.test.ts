@@ -6,7 +6,7 @@ describe('configSchema', () => {
     const schema = getSchema();
 
     it('should reject missing required fields', () => {
-      const result = validateConfig(schema, { teamId: 'team-1' });
+      const result = validateConfig(schema, { userEmail: 'test@example.com' });
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('apiKey is required');
     });
@@ -14,7 +14,7 @@ describe('configSchema', () => {
     it('should accept valid payloads', () => {
       const result = validateConfig(schema, {
         apiKey: 'secret',
-        teamId: 'team-1',
+        userEmail: 'test@example.com',
         scopes: ['drive.read']
       });
       expect(result.valid).toBe(true);
@@ -24,7 +24,7 @@ describe('configSchema', () => {
     it('should enforce csv formats as arrays', () => {
       const result = validateConfig(schema, {
         apiKey: 'secret',
-        teamId: 'team-1',
+        userEmail: 'test@example.com',
         scopes: 'drive.read'
       });
       expect(result.valid).toBe(false);
@@ -37,11 +37,11 @@ describe('configSchema', () => {
       const schema = getSchema();
       const { publicConfig, secretConfig } = splitSecrets(schema, {
         apiKey: 'secret',
-        teamId: 'team-1',
+        userEmail: 'test@example.com',
         scopes: ['drive.read']
       });
       expect(secretConfig).toEqual({ apiKey: 'secret' });
-      expect(publicConfig).toEqual({ teamId: 'team-1', scopes: ['drive.read'] });
+      expect(publicConfig).toEqual({ userEmail: 'test@example.com', scopes: ['drive.read'] });
     });
   });
 });
