@@ -1,7 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import express from "express";
+import crypto from "crypto";
 import { registerGmailTools } from "./tools/gmail";
 import { registerCalendarTools } from "./tools/calendar";
 import { registerDriveTools } from "./tools/drive";
@@ -14,12 +15,15 @@ import { registerAdminTools } from "./tools/admin";
 
 export class GoogleMcpServer {
     private server: McpServer;
-    private sseTransports: Map<string, SSEServerTransport> = new Map();
+    private transport: StreamableHTTPServerTransport;
 
     constructor() {
         this.server = new McpServer({
             name: "google-workspace-mcp",
-            version: "0.1.0",
+            version: "1.0.0",
+        });
+        this.transport = new StreamableHTTPServerTransport({
+            sessionIdGenerator: () => crypto.randomUUID(),
         });
     }
 
@@ -42,41 +46,11 @@ export class GoogleMcpServer {
         console.error("Google Workspace MCP Server running on stdio");
     }
 
-    async startSse(app: express.Application, path: string = "/sse") {
-        await this.registerTools();
-
-        app.get(path, async (req, res) => {
-            const transport = new SSEServerTransport("/messages", res);
-            await this.server.connect(transport);
-
-            // Access sessionId from transport. 
-            // We cast to any because TS definition might be missing explicit property depending on version
-            const sessionId = (transport as any).sessionId;
-
-            if (sessionId) {
-                this.sseTransports.set(sessionId, transport);
-
-                transport.onclose = () => {
-                    this.sseTransports.delete(sessionId);
-                };
-            }
-        });
-
-        app.post("/messages", async (req, res) => {
-            const sessionId = req.query.sessionId as string;
-            if (!sessionId) {
-                res.status(400).send("Session ID required");
-                return;
-            }
-
-            const transport = this.sseTransports.get(sessionId);
-            if (!transport) {
-                res.status(404).send("Session not found");
-                return;
-            }
-
-            // Handle the message. usage of handlePostMessage
-            await transport.handlePostMessage(req, res);
-        });
+    async handleHttpRequest(req: any, res: any) {
+        if (!this.server.isConnected()) {
+            await this.registerTools();
+            await this.server.connect(this.transport);
+        }
+        await this.transport.handleRequest(req, res, req.body);
     }
 }

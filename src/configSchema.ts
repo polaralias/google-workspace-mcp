@@ -15,14 +15,6 @@ export interface ConfigSchema {
 const defaultSchema: ConfigSchema = {
   fields: [
     {
-      name: 'apiKey',
-      label: 'API Key',
-      type: 'password',
-      required: true,
-      description: 'Secret key used to authenticate to the upstream service.',
-      sensitive: true
-    },
-    {
       name: 'userEmail',
       label: 'Google Email',
       type: 'text',
@@ -35,7 +27,7 @@ const defaultSchema: ConfigSchema = {
       type: 'text',
       format: 'csv',
       required: false,
-      description: 'Optional: Comma-separated list of scopes.'
+      description: 'Optional: Comma-separated list of scopes (e.g. gmail, calendar).'
     }
   ]
 };

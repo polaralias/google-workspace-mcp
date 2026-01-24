@@ -3,35 +3,84 @@ const API_BASE = '/api';
 const urlParams = new URLSearchParams(window.location.search);
 const redirectUri = urlParams.get('redirect_uri') || urlParams.get('callback_url');
 const state = urlParams.get('state');
+const clientId = urlParams.get('client_id');
+const codeChallenge = urlParams.get('code_challenge');
+const codeChallengeMethod = urlParams.get('code_challenge_method');
+const modeParam = urlParams.get('mode');
+
+let currentMode = 'apikey';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const oauthUrl = `${window.location.protocol}//${window.location.host}/oauth`;
-    const oauthUrlEl = document.getElementById('oauth-url');
-    if (oauthUrlEl) oauthUrlEl.innerText = oauthUrl;
-
-    const googleBtn = document.getElementById('google-signin-btn');
-    if (googleBtn) {
-        googleBtn.onclick = triggerGoogleAuth;
+    // Initial Setup
+    if (window.location.pathname === '/authorize' || modeParam === 'oauth' || (clientId && redirectUri)) {
+        setMode('oauth');
+    } else {
+        setMode('apikey');
     }
 
-    checkAuthStatus();
+    if (clientId) {
+        document.getElementById('oauth-discovery-banner').classList.remove('hidden');
+        document.getElementById('client-info').innerText = `Client ID: ${clientId}`;
+    }
 
+    // Event Listeners
+    document.getElementById('google-signin-btn').onclick = triggerGoogleAuth;
+    document.getElementById('google-oauth-btn').onclick = triggerGoogleAuth;
+
+    document.getElementById('manual-oauth-form').onsubmit = handleManualOauth;
+    document.getElementById('user-bound-form').onsubmit = handleIssueKey;
+
+    // Load Schema for API Key mode
     try {
         const res = await fetch(`${API_BASE}/config-schema`);
         if (res.ok) {
             const schema = await res.json();
-            renderConfigForm(schema);
-            document.getElementById('view-config-entry').classList.remove('hidden');
-
-            // Re-check auth status to fill in form fields
-            checkAuthStatus();
+            renderConfigFields(schema);
         }
     } catch (e) {
         console.error('Failed to load config schema', e);
     }
 
-    await fetchConfigStatus();
+    // Check OAuth Configuration Status
+    checkOauthConfigStatus();
+
+    // Check Current Auth Status (Cookie)
+    checkAuthStatus();
 });
+
+function setMode(mode) {
+    currentMode = mode;
+    const secApi = document.getElementById('apikey-section');
+    const secOauth = document.getElementById('oauth-section');
+
+    if (mode === 'apikey') {
+        secApi.classList.remove('hidden');
+        secOauth.classList.add('hidden');
+    } else {
+        secOauth.classList.remove('hidden');
+        secApi.classList.add('hidden');
+    }
+}
+
+async function checkOauthConfigStatus() {
+    try {
+        const res = await fetch(`${API_BASE}/oauth-status`);
+        const { configured } = await res.json();
+
+        const googleContainer = document.getElementById('google-oauth-container');
+        const manualContainer = document.getElementById('manual-oauth-container');
+
+        if (configured) {
+            googleContainer.classList.remove('hidden');
+            manualContainer.classList.add('hidden');
+        } else {
+            googleContainer.classList.add('hidden');
+            manualContainer.classList.remove('hidden');
+        }
+    } catch (e) {
+        console.error('Failed to check oauth status', e);
+    }
+}
 
 function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -45,13 +94,12 @@ function checkAuthStatus() {
     const authUser = document.getElementById('authenticated-user');
     const emailDisplay = document.getElementById('user-email-display');
 
-    if (email && notAuth && authUser) {
-        notAuth.classList.add('hidden');
-        authUser.classList.remove('hidden');
+    if (email) {
+        if (notAuth) notAuth.classList.add('hidden');
+        if (authUser) authUser.classList.remove('hidden');
         const decodedEmail = decodeURIComponent(email);
         if (emailDisplay) emailDisplay.innerText = decodedEmail;
 
-        // Auto-fill userEmail field in form if it exists
         const emailInput = document.getElementById('userEmail');
         if (emailInput && !emailInput.value) {
             emailInput.value = decodedEmail;
@@ -59,151 +107,77 @@ function checkAuthStatus() {
     }
 }
 
-window.triggerGoogleAuth = () => {
-    window.location.href = '/auth/google';
-};
+function triggerGoogleAuth() {
+    const currentSearch = window.location.search;
+    window.location.href = `/auth/google${currentSearch}`;
+}
 
-window.copyOAuthUrl = async () => {
-    const url = document.getElementById('oauth-url').innerText;
-    try {
-        await navigator.clipboard.writeText(url);
-        const btn = document.querySelector('button[onclick="copyOAuthUrl()"]');
-        const originalText = btn.innerText;
-        btn.innerText = 'Copied!';
-        setTimeout(() => (btn.innerText = originalText), 1500);
-    } catch (e) {
-        alert('Copy failed');
-    }
-};
+async function handleManualOauth(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const originalText = btn.innerText;
+    btn.innerText = 'SAVING...';
+    btn.disabled = true;
 
-async function fetchConfigStatus() {
-    const banner = document.getElementById('config-status-banner');
-    const icon = document.getElementById('status-icon');
-    const title = document.getElementById('status-title');
-    const message = document.getElementById('status-message');
-    const guidance = document.getElementById('status-guidance');
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
 
     try {
-        const res = await fetch(`${API_BASE}/config-status`);
-        const data = await res.json();
+        const res = await fetch('/auth/init-custom', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
 
-        banner.classList.remove('hidden');
-        if (data.status === 'present') {
-            banner.className = 'mb-6 p-4 rounded-lg border bg-green-50 border-green-200 text-green-800';
-            icon.innerText = '✅';
-            title.innerText = 'Server is configured';
-            message.innerText = `Encryption key is set (${data.format}).`;
-            guidance.innerText = '';
-        } else {
-            banner.className = 'mb-6 p-4 rounded-lg border bg-red-50 border-red-200 text-red-800';
-            icon.innerText = '❌';
-            title.innerText = 'Server is not configured';
-            message.innerText = 'The required encryption key is missing. User-bound API keys cannot be issued.';
-            guidance.innerText = 'Set the server encryption key environment variable to enable secure storage and key issuance.';
-        }
-    } catch (e) {
-        banner.classList.remove('hidden');
-        banner.className = 'mb-6 p-4 rounded-lg border bg-red-50 border-red-200 text-red-800';
-        icon.innerText = '❌';
-        title.innerText = 'Unable to check server status';
-        message.innerText = 'Could not reach /api/config-status. Is the server running?';
-        guidance.innerText = '';
+        if (!res.ok) throw new Error('Failed to save configuration');
+        triggerGoogleAuth();
+    } catch (err) {
+        alert(err.message);
+        btn.innerText = originalText;
+        btn.disabled = false;
     }
 }
 
-function renderConfigForm(schema) {
+function renderConfigFields(schema) {
     const container = document.getElementById('config-fields-container');
     container.innerHTML = '';
 
     schema.fields.forEach(field => {
         const wrapper = document.createElement('div');
+        wrapper.className = 'space-y-1.5';
 
         const label = document.createElement('label');
-        label.className = 'block text-sm font-medium text-gray-700 mb-1';
+        label.className = 'block text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1';
         label.innerText = field.label;
         wrapper.appendChild(label);
 
-        let input;
-        if (field.type === 'select') {
-            input = document.createElement('select');
-            input.className = 'w-full p-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500';
-            (field.options || []).forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt.value;
-                option.innerText = opt.label;
-                input.appendChild(option);
-            });
-        } else if (field.type === 'checkbox') {
-            const checkboxWrapper = document.createElement('div');
-            checkboxWrapper.className = 'flex items-center bg-gray-50 border border-gray-300 rounded-lg p-2';
-
-            input = document.createElement('input');
-            input.type = 'checkbox';
-            input.id = field.name;
-            input.className = 'mr-2';
-
-            const cbLabel = document.createElement('span');
-            cbLabel.className = 'text-sm text-gray-700';
-            cbLabel.innerText = field.description || '';
-
-            checkboxWrapper.appendChild(input);
-            checkboxWrapper.appendChild(cbLabel);
-            wrapper.appendChild(checkboxWrapper);
-
-            input.name = field.name;
-            if (field.required) input.required = true;
-            container.appendChild(wrapper);
-            return;
-        } else if (field.type === 'textarea') {
-            input = document.createElement('textarea');
-            input.className = 'w-full p-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500';
-            input.rows = field.rows || 4;
-            input.placeholder = field.placeholder || '';
-        } else {
-            input = document.createElement('input');
-            input.type = field.type === 'password' ? 'password' : 'text';
-            input.className = 'w-full p-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500';
-            input.placeholder = field.placeholder || '';
-        }
-
+        const input = document.createElement('input');
+        input.type = field.type === 'password' ? 'password' : 'text';
+        input.className = 'w-full p-4 text-sm input-field rounded-xl bg-white/50 focus:bg-white shadow-sm';
+        input.placeholder = field.description || '';
         input.name = field.name;
         input.id = field.name;
         if (field.required) input.required = true;
-        if (field.format) input.dataset.format = field.format;
+        if (field.format === 'csv') input.dataset.format = 'csv';
 
         wrapper.appendChild(input);
-
-        if (field.description) {
-            const hint = document.createElement('p');
-            hint.className = 'text-xs text-gray-500 mt-1';
-            hint.innerText = field.description;
-            wrapper.appendChild(hint);
-        }
-
         container.appendChild(wrapper);
     });
-
-    const form = document.getElementById('user-bound-form');
-    form.addEventListener('submit', handleIssueKey);
 }
 
 async function handleIssueKey(e) {
     e.preventDefault();
-
     const btn = document.getElementById('issue-btn');
     const originalText = btn.innerText;
-    btn.innerText = 'Issuing...';
+    btn.innerText = 'ISSUING...';
     btn.disabled = true;
 
-    const form = e.target;
-    const formData = new FormData(form);
+    const formData = new FormData(e.target);
     const payload = {};
 
     for (const [k, v] of formData.entries()) {
         const el = document.getElementById(k);
-        if (el && el.type === 'checkbox') {
-            payload[k] = el.checked;
-        } else if (el && el.dataset && el.dataset.format === 'csv') {
+        if (el && el.dataset && el.dataset.format === 'csv') {
             payload[k] = String(v).split(',').map(s => s.trim()).filter(Boolean);
         } else {
             payload[k] = v;
@@ -211,6 +185,7 @@ async function handleIssueKey(e) {
     }
 
     try {
+        payload.csrf_token = window.CSRF_TOKEN;
         const res = await fetch(`${API_BASE}/api-keys`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -218,11 +193,9 @@ async function handleIssueKey(e) {
         });
 
         const data = await res.json();
-        if (!res.ok) {
-            throw new Error(data.error || 'Failed to issue API key');
-        }
+        if (!res.ok) throw new Error(data.error || 'Failed to issue key');
 
-        showApiKeyResult(data.apiKey);
+        showResult(data.apiKey);
     } catch (err) {
         alert(err.message);
     } finally {
@@ -231,18 +204,22 @@ async function handleIssueKey(e) {
     }
 }
 
-function showApiKeyResult(apiKey) {
-    document.getElementById('view-config-entry').classList.add('hidden');
-    document.getElementById('api-key-result').classList.remove('hidden');
+function showResult(apiKey) {
+    document.getElementById('apikey-section').classList.add('hidden');
+    document.getElementById('oauth-section').classList.add('hidden');
+    document.getElementById('mode-tabs').classList.add('hidden');
+    document.getElementById('result-section').classList.remove('hidden');
 
-    const pre = document.getElementById('api-key-value');
-    pre.innerText = apiKey;
+    const display = document.getElementById('api-key-value');
+    display.innerText = apiKey;
 
     document.getElementById('copy-btn').onclick = async () => {
         try {
             await navigator.clipboard.writeText(apiKey);
-            document.getElementById('copy-btn').innerText = 'Copied!';
-            setTimeout(() => (document.getElementById('copy-btn').innerText = 'Copy'), 1500);
+            const copyBtn = document.getElementById('copy-btn');
+            const originalIcon = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<span class="text-[10px] font-bold">COPIED</span>';
+            setTimeout(() => copyBtn.innerHTML = originalIcon, 2000);
         } catch (e) {
             alert('Copy failed');
         }
@@ -250,16 +227,10 @@ function showApiKeyResult(apiKey) {
 
     if (redirectUri) {
         const url = new URL(redirectUri);
-        url.searchParams.set('api_key', apiKey);
+        url.searchParams.set('code', apiKey); // Use 'code' for MCP OAuth compatibility if needed, or 'api_key'
         if (state) url.searchParams.set('state', state);
         setTimeout(() => {
             window.location.href = url.toString();
-        }, 500);
+        }, 1500);
     }
-}
-
-function resetConfigForm() {
-    document.getElementById('api-key-result').classList.add('hidden');
-    document.getElementById('view-config-entry').classList.remove('hidden');
-    document.getElementById('user-bound-form').reset();
 }

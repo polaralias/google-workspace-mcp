@@ -6,7 +6,7 @@ import * as fs from 'fs/promises';
 import * as crypto from 'crypto';
 import { config, getMasterKeyInfo } from './env';
 import { runMigrations, query, withTransaction } from './db';
-import { encryptJson, sha256Hex, randomToken, base64url } from './crypto';
+import { encryptJson, decryptJson, sha256Hex, randomToken, base64url } from './crypto';
 import { getSchema, validateConfig, splitSecrets } from './configSchema';
 import { GoogleMcpServer } from './mcp';
 import { google } from 'googleapis';
@@ -106,36 +106,41 @@ app.get('/api/connect-schema', (req: Request, res: Response) => {
   res.json(getSchema());
 });
 
-app.get('/oauth', (req: Request, res: Response) => {
-  // If it's a browser request (not looking for the well-known config directly),
-  // redirect to the connection page.
-  res.redirect('/connect' + (Object.keys(req.query).length ? '?' + new URLSearchParams(req.query as any).toString() : ''));
+app.get('/.well-known/oauth-authorization-server', (req: Request, res: Response) => {
+  const baseUrl = config.WORKSPACE_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
+  res.json({
+    issuer: baseUrl,
+    authorization_endpoint: `${baseUrl}/authorize`,
+    token_endpoint: `${baseUrl}/token`,
+    registration_endpoint: `${baseUrl}/register`,
+    scopes_supported: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/drive',
+      'https://www.googleapis.com/auth/gmail.modify',
+      'https://www.googleapis.com/auth/tasks'
+    ],
+    response_types_supported: ['code'],
+    grant_types_supported: ['authorization_code'],
+    code_challenge_methods_supported: ['S256', 'plain']
+  });
 });
 
 app.get('/.well-known/mcp-configuration', (req: Request, res: Response) => {
   res.json({
-    sse: {
-      endpoint: '/sse'
-    }
-  });
-});
-
-app.get('/oauth/.well-known/mcp-configuration', (req: Request, res: Response) => {
-  res.json({
-    sse: {
-      endpoint: '/sse'
-    },
-    oauth: {
-      authorizationUrl: '/connect',
-      tokenUrl: '/token',
-      scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/tasks'
-    }
+    mcp_endpoint: '/mcp'
   });
 });
 
 app.post('/api/api-keys', apiKeyLimiter, async (req: Request, res: Response) => {
   if (!apiKeyModeEnabled) {
     res.status(404).json({ error: 'Not found' });
+    return;
+  }
+
+  const { csrf_token } = req.body || {};
+  if (!csrf_token || csrf_token !== req.cookies.csrf_token) {
+    res.status(403).json({ error: 'Invalid CSRF token' });
     return;
   }
 
@@ -201,7 +206,7 @@ app.get('/auth/google', (req: Request, res: Response) => {
   const clientSecret = customConfig?.clientSecret || config.GOOGLE_OAUTH_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    res.redirect('/connect?error=server_not_configured');
+    res.redirect('/authorize?error=server_not_configured');
     return;
   }
 
@@ -351,7 +356,9 @@ app.post('/register', registerLimiter, async (req: Request, res: Response) => {
       const hostname = parsed.hostname.toLowerCase();
       const isAllowed = allowlist.some(domain => hostname === domain || hostname.endsWith(`.${domain}`));
       if (!isAllowed) {
-        res.status(400).json({ error: `redirect_uri not allowed: ${uri}` });
+        res.status(400).json({
+          error: `The redirect URI ${uri} is not in our allowlist. Please raise a GitHub issue to have it added: https://github.com/polaralias/google-workspace-mcp`
+        });
         return;
       }
       normalized.push(uri);
@@ -374,12 +381,12 @@ app.post('/register', registerLimiter, async (req: Request, res: Response) => {
   }
 });
 
-app.get('/connect', async (req: Request, res: Response) => {
+app.get('/authorize', async (req: Request, res: Response) => {
   const { client_id, redirect_uri, state, code_challenge, code_challenge_method } = req.query;
 
-  if (!client_id || !redirect_uri || !code_challenge || !code_challenge_method) {
-    res.status(400).send('Missing required parameters');
-    return;
+  // If no client_id, we treat it as a human navigating to the "connect" section of the portal
+  if (!client_id || !redirect_uri) {
+    return res.redirect('/?mode=oauth');
   }
 
   const pkceError = getPkceError(code_challenge_method);
@@ -396,7 +403,22 @@ app.get('/connect', async (req: Request, res: Response) => {
     }
     const clientRedirects = rows[0].redirect_uris;
     if (!isRedirectAllowed(redirect_uri as string, clientRedirects)) {
-      res.status(400).send('Invalid redirect_uri');
+      res.status(403).send(`
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; text-align: center; color: #333; line-height: 1.5;">
+          <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+          <h1 style="font-size: 24px; font-weight: 800; margin-bottom: 16px;">Redirect URI Not Allowed</h1>
+          <p style="font-size: 16px; color: #666; max-width: 500px; margin: 0 auto 24px;">
+            The redirect URI <strong>${redirect_uri}</strong> is not authorized for this server.
+          </p>
+          <p style="font-size: 14px; color: #888; margin-bottom: 32px;">
+            Please raise a GitHub issue to add support for this client:
+          </p>
+          <a href="https://github.com/polaralias/google-workspace-mcp" 
+             style="display: inline-block; background: #4285F4; color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; text-decoration: none; transition: transform 0.2s;">
+            Raise GitHub Issue
+          </a>
+        </div>
+      `);
       return;
     }
 
@@ -407,17 +429,17 @@ app.get('/connect', async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === 'production'
     });
 
-    const htmlPath = path.join(publicDir, 'connect.html');
+    const htmlPath = path.join(publicDir, 'index.html');
     let html = await fs.readFile(htmlPath, 'utf8');
     html = html.replace('{{CSRF_TOKEN}}', csrfToken);
     res.type('html').send(html);
   } catch (err) {
-    console.error('Failed to render connect page', err);
+    console.error('Failed to render authorize page', err);
     res.status(500).send('Server error');
   }
 });
 
-app.post('/connect', connectLimiter, async (req: Request, res: Response) => {
+app.post('/authorize', connectLimiter, async (req: Request, res: Response) => {
   const {
     client_id,
     redirect_uri,
@@ -460,7 +482,9 @@ app.post('/connect', connectLimiter, async (req: Request, res: Response) => {
     }
     const clientRedirects = rows[0].redirect_uris;
     if (!isRedirectAllowed(redirect_uri, clientRedirects)) {
-      res.status(400).json({ error: 'Invalid redirect_uri' });
+      res.status(400).json({
+        error: `The redirect URI ${redirect_uri} is not allowed. Please raise a GitHub issue: https://github.com/polaralias/google-workspace-mcp`
+      });
       return;
     }
 
@@ -512,7 +536,9 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
     }
     const clientRedirects = clientRows[0].redirect_uris;
     if (!isRedirectAllowed(redirect_uri, clientRedirects)) {
-      res.status(400).json({ error: 'Invalid redirect_uri' });
+      res.status(400).json({
+        error: `The redirect URI ${redirect_uri} is not allowed. Please raise a GitHub issue: https://github.com/polaralias/google-workspace-mcp`
+      });
       return;
     }
 
@@ -578,15 +604,26 @@ app.get('/', async (req: Request, res: Response) => {
     res.status(404).send('Not found');
     return;
   }
-  res.sendFile(path.join(publicDir, 'index.html'));
+
+  const csrfToken = crypto.randomBytes(16).toString('hex');
+  res.cookie('csrf_token', csrfToken, {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production'
+  });
+
+  const htmlPath = path.join(publicDir, 'index.html');
+  try {
+    let html = await fs.readFile(htmlPath, 'utf8');
+    html = html.replace('{{CSRF_TOKEN}}', csrfToken);
+    res.type('html').send(html);
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
 });
 
 app.get('/index.html', (req: Request, res: Response) => {
-  if (!apiKeyModeEnabled) {
-    res.status(404).send('Not found');
-    return;
-  }
-  res.sendFile(path.join(publicDir, 'index.html'));
+  res.redirect('/');
 });
 
 app.get('/app.js', (req: Request, res: Response) => {
@@ -613,19 +650,92 @@ async function start() {
 
     if (transport === 'stdio') {
       await mcp.startStdio();
-      // In stdio mode, we might still want to run the HTTP server for Auth UI?
-      // If so, we must ensure it doesn't log to stdout.
-      // But typically Stdio MCP server doesn't have a UI running in same process if it chats on Stdout.
-      // However, for this specific project, the UI is for Auth.
-      // We can run the server on a port, but ensure no console.log to stdout.
-      // For simplicity, let's assume if stdio is requested, we strictly run MCP on stdio.
-      // BUT, we need the Auth UI to be accessible to authorize!
-      // So we MUST run the express app.
-      // We'll redirect console.log to stderr.
-      // console.log = console.error; // simple hack
-    } else {
-      await mcp.startSse(app);
     }
+    async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+      // 1. Get token from Header or Query
+      let token = '';
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      } else if (req.headers['x-api-key']) {
+        token = req.headers['x-api-key'] as string;
+      } else if (req.query.apiKey) {
+        token = req.query.apiKey as string;
+      }
+
+      if (!token) {
+        // For MCP initialization, we might allow it if it's a public server, 
+        // but here we want to enforce auth.
+        // However, Streamable HTTP handles 401 itself if we don't provide auth?
+        // Actually, we should check if the token exists in our DB.
+        next();
+        return;
+      }
+
+      const tokenHash = sha256Hex(token);
+
+      try {
+        // Check session (OAuth-issued)
+        const { rows: sessionRows } = await query(
+          'SELECT s.id, c.client_id, c.config FROM sessions s JOIN connections c ON s.connection_id = c.id WHERE s.token_hash = $1 AND s.expires_at > NOW()',
+          [tokenHash]
+        );
+
+        if (sessionRows.length > 0) {
+          const session = sessionRows[0];
+          (req as any).auth = {
+            token,
+            clientId: session.client_id,
+            scopes: [], // Should extract from config if needed
+            extra: {
+              config: JSON.parse(session.config)
+            }
+          };
+          next();
+          return;
+        }
+
+        // Check API Key (User-bound)
+        const { rows: apiKeyRows } = await query(
+          'SELECT ak.id, uc.config_enc FROM api_keys ak JOIN user_configs uc ON ak.user_config_id = uc.id WHERE ak.key_hash = $1',
+          [tokenHash]
+        );
+
+        if (apiKeyRows.length > 0) {
+          const apiKeyRow = apiKeyRows[0];
+          const decryptedConfig = decryptJson(config.MASTER_KEY, apiKeyRow.config_enc);
+
+          (req as any).auth = {
+            token,
+            clientId: 'user-bound-client',
+            scopes: [],
+            extra: {
+              config: decryptedConfig
+            }
+          };
+          next();
+          return;
+        }
+
+        // Invalid token
+        res.status(401).json({ error: 'Unauthorized' });
+      } catch (err) {
+        console.error('Auth check failed', err);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    }
+
+    app.all('/mcp', authMiddleware, async (req: Request, res: Response) => {
+      await mcp.handleHttpRequest(req, res);
+    });
+
+    // Old SSE and messages for backward compatibility
+    app.get('/sse', async (req: Request, res: Response) => {
+      await mcp.handleHttpRequest(req, res);
+    });
+    app.post('/messages', async (req: Request, res: Response) => {
+      await mcp.handleHttpRequest(req, res);
+    });
 
     // Add 404 handler last to ensure all routes are registered
     app.use((req: Request, res: Response) => {

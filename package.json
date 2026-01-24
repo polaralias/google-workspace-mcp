@@ -11,7 +11,7 @@
     "dev": "ts-node src/server.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@modelcontextprotocol/sdk": "^1.25.3",
     "cookie-parser": "^1.4.6",
     "dotenv": "^17.2.3",
     "express": "^4.19.2",
