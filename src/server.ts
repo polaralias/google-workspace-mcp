@@ -627,15 +627,7 @@ app.get('/index.html', (req: Request, res: Response) => {
 });
 
 app.get('/app.js', (req: Request, res: Response) => {
-  if (!apiKeyModeEnabled) {
-    res.status(404).send('Not found');
-    return;
-  }
   res.sendFile(path.join(publicDir, 'app.js'));
-});
-
-app.get('/connect.js', (req: Request, res: Response) => {
-  res.sendFile(path.join(publicDir, 'connect.js'));
 });
 
 // 404 handler moved to start() to ensure it doesn't block dynamically added routes
