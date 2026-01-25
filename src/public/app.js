@@ -147,13 +147,13 @@ function renderConfigFields(schema) {
         wrapper.className = 'space-y-1.5';
 
         const label = document.createElement('label');
-        label.className = 'block text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1';
+        label.className = 'block text-[10px] font-black text-blue-400/60 uppercase tracking-[0.2em] ml-2 mb-1';
         label.innerText = field.label;
         wrapper.appendChild(label);
 
         const input = document.createElement('input');
         input.type = field.type === 'password' ? 'password' : 'text';
-        input.className = 'w-full p-4 text-sm input-field rounded-xl bg-white/50 focus:bg-white shadow-sm';
+        input.className = 'w-full p-4 text-sm input-field rounded-2xl bg-white/5 border border-white/10 text-white placeholder-white/20 focus:bg-white/10 transition-all';
         input.placeholder = field.description || '';
         input.name = field.name;
         input.id = field.name;
