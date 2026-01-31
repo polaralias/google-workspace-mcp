@@ -207,7 +207,8 @@ async function handleIssueKey(e) {
 function showResult(apiKey) {
     document.getElementById('apikey-section').classList.add('hidden');
     document.getElementById('oauth-section').classList.add('hidden');
-    document.getElementById('mode-tabs').classList.add('hidden');
+    const modeTabs = document.getElementById('mode-tabs');
+    if (modeTabs) modeTabs.classList.add('hidden');
     document.getElementById('result-section').classList.remove('hidden');
 
     const display = document.getElementById('api-key-value');
