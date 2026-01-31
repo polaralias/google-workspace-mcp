@@ -578,6 +578,11 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
 
     const codeHash = sha256Hex(code);
     const now = new Date();
+    const token = randomToken('mcp_at_', 24);
+    const tokenHash = sha256Hex(token);
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + config.TOKEN_TTL_SECONDS * 1000);
+
     const authCodeRow = await db.transaction(tx => {
       const row = tx.select({
         connectionId: authCodes.connectionId,
@@ -592,9 +597,19 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
         return null;
       }
 
+      // Delete the auth code (one-time use)
       tx.delete(authCodes)
         .where(and(eq(authCodes.codeHash, codeHash), gt(authCodes.expiresAt, now)))
         .run();
+
+      // Create the session
+      tx.insert(sessions).values({
+        id: sessionId,
+        tokenHash,
+        connectionId: row.connectionId,
+        expiresAt,
+        createdAt: new Date()
+      }).run();
 
       return row;
     });
@@ -618,19 +633,6 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Invalid code_verifier' });
       return;
     }
-
-    const token = randomToken('mcp_at_', 24);
-    const tokenHash = sha256Hex(token);
-    const sessionId = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + config.TOKEN_TTL_SECONDS * 1000);
-
-    await db.insert(sessions).values({
-      id: sessionId,
-      tokenHash,
-      connectionId: authCodeRow.connectionId,
-      expiresAt,
-      createdAt: new Date()
-    }).run();
 
     res.json({
       access_token: token,

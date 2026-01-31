@@ -20,6 +20,7 @@ function resolveSqliteFilename(databaseUrl: string): { filename: string; inMemor
     throw new Error('DATABASE_URL is required');
   }
   const normalized = trimmed.toLowerCase();
+
   if (
     trimmed === ':memory:' ||
     normalized === 'sqlite::memory:' ||
@@ -30,13 +31,21 @@ function resolveSqliteFilename(databaseUrl: string): { filename: string; inMemor
   }
 
   if (trimmed.startsWith('file:')) {
-    return { filename: fileURLToPath(trimmed), inMemory: false };
+    try {
+      return { filename: fileURLToPath(trimmed), inMemory: false };
+    } catch (e) {
+      // Fallback for non-URL-like paths
+      return { filename: trimmed.slice(5), inMemory: false };
+    }
   }
 
   if (trimmed.startsWith('sqlite:')) {
     const rest = trimmed.slice('sqlite:'.length);
     if (rest === ':memory:' || rest === '//:memory:' || rest === '///:memory:') {
       return { filename: ':memory:', inMemory: true };
+    }
+    if (rest.startsWith('///')) {
+      return { filename: rest.slice(3), inMemory: false };
     }
     if (rest.startsWith('//')) {
       const pathPart = rest.slice(2);
@@ -52,21 +61,31 @@ function resolveSqliteFilename(databaseUrl: string): { filename: string; inMemor
   return { filename: path.resolve(trimmed), inMemory: false };
 }
 
-const { filename, inMemory } = resolveSqliteFilename(config.DATABASE_URL || '');
+const { filename, inMemory } = resolveSqliteFilename(config.DATABASE_URL || 'sqlite:///data/mcp.db');
 const dbFileExists = !inMemory && fs.existsSync(filename);
 
 if (!inMemory) {
-  fs.mkdirSync(path.dirname(filename), { recursive: true });
+  const dir = path.dirname(filename);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 }
 
 const sqlite = new Database(filename);
+
+// Performance and safety settings
 sqlite.pragma('journal_mode = WAL');
 sqlite.pragma('foreign_keys = ON');
+sqlite.pragma('synchronous = NORMAL');
+sqlite.pragma('cache_size = -2000'); // 2MB
 
 const dbBase = drizzle(sqlite, { schema });
 const db = dbBase as DrizzleDbWithSchema;
 
 function createSchema() {
+  // Use a series of RUN commands to initialize the schema
+  // This matches the Drizzle schema provided in src/db/schema.ts
+
   db.run(sql`
     CREATE TABLE IF NOT EXISTS clients (
       client_id TEXT PRIMARY KEY,
@@ -134,6 +153,7 @@ function createSchema() {
     );
   `);
 
+  // Indexes
   db.run(sql`CREATE INDEX IF NOT EXISTS sessions_token_hash_idx ON sessions(token_hash);`);
   db.run(sql`CREATE INDEX IF NOT EXISTS sessions_expires_at_idx ON sessions(expires_at);`);
   db.run(sql`CREATE INDEX IF NOT EXISTS auth_codes_expires_at_idx ON auth_codes(expires_at);`);
@@ -144,9 +164,12 @@ function createSchema() {
 db.schema = { create: createSchema };
 
 export async function runMigrations() {
+  // If the DB file didn't exist, or if we're in-memory, run the schema creation
   if (!dbFileExists || inMemory) {
+    console.error('Initialising SQLite database schema...');
     db.schema.create();
   }
 }
 
 export { db };
+
