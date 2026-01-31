@@ -354,15 +354,21 @@
         </div>
 
         <!-- Footer -->
-        <div class="text-center mt-12 space-y-2">
-            <p class="text-blue-100/30 text-[10px] font-black uppercase tracking-[0.3em]">
+        <footer class="mt-12 rounded-[2rem] bg-white/5 border border-white/10 p-6 space-y-3 text-center">
+            <p class="text-sm text-blue-100/70 leading-relaxed">
+                The Google Workspace MCP server brokers OAuth flows, issues MCP API keys, and exposes this UI so administrators can manage workspace access.
+            </p>
+            <p class="text-[11px] font-black uppercase tracking-[0.35em] text-blue-200/80">
+                Legal
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 text-xs font-bold uppercase tracking-[0.4em] text-blue-200/70">
+                <a href="/privacy-policy" class="underline decoration-blue-400/50 hover:text-white transition-colors" aria-label="Privacy Policy">Privacy Policy</a>
+                <a href="/tos" class="underline decoration-blue-400/50 hover:text-white transition-colors" aria-label="Terms of Service">Terms of Service</a>
+            </div>
+            <p class="text-[10px] uppercase tracking-[0.28em] text-blue-100/40">
                 &copy; 2026 Model Context Protocol | Built for Performance
             </p>
-            <div class="text-xs uppercase tracking-[0.4em] text-blue-200/70 font-bold space-x-4">
-                <a href="/privacy-policy" class="underline decoration-blue-400/50 hover:text-white transition-colors">Privacy Policy</a>
-                <a href="/tos" class="underline decoration-blue-400/50 hover:text-white transition-colors">Terms of Service</a>
-            </div>
-        </div>
+        </footer>
     </div>
 
     <script>window.CSRF_TOKEN = "{{CSRF_TOKEN}}";</script>
