@@ -105,6 +105,75 @@ function getGoogleRedirectUri(req: Request): string {
   return `${baseUrl}/auth/google/callback`;
 }
 
+function renderLegalPage(title: string, sections: { heading: string; body: string }[]): string {
+  const sectionsHtml = sections.map(section => `
+    <section>
+      <h2>${section.heading}</h2>
+      <p>${section.body}</p>
+    </section>
+  `).join('');
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${title}</title>
+        <style>
+          :root {
+            color-scheme: dark;
+          }
+          body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top, rgba(66, 133, 244, 0.25), transparent 40%), #020617;
+            color: #f8fafc;
+            min-height: 100vh;
+          }
+          main {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px 64px;
+          }
+          h1 {
+            font-size: 2.1rem;
+            margin-bottom: 8px;
+          }
+          h2 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #cbd5f5;
+          }
+          p {
+            margin: 0 0 24px;
+            line-height: 1.6;
+            color: #e2e8f0;
+          }
+          section + section {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 24px;
+            margin-top: 24px;
+          }
+          footer {
+            margin-top: 48px;
+            color: rgba(229, 231, 235, 0.7);
+            font-size: 0.85rem;
+          }
+        </style>
+      </head>
+      <body>
+        <main>
+          <h1>${title}</h1>
+          ${sectionsHtml}
+          <footer>
+            <p>Google Workspace MCP Server • ${new Date().getFullYear()} • ${config.BASE_URL || 'self-hosted'}</p>
+          </footer>
+        </main>
+      </body>
+    </html>
+  `;
+}
+
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', encryption: getMasterKeyInfo().status });
 });
@@ -150,6 +219,52 @@ app.get('/.well-known/mcp-configuration', (req: Request, res: Response) => {
   res.json({
     mcp_endpoint: '/mcp'
   });
+});
+
+app.get('/privacy-policy', (req: Request, res: Response) => {
+  res.type('html').send(renderLegalPage('Privacy Policy', [
+    {
+      heading: 'What we do',
+      body: 'The Google Workspace MCP server bridges MCP clients with Google Workspace by handling OAuth, encrypting secrets, and issuing short-lived tokens for your automations.'
+    },
+    {
+      heading: 'Information we collect',
+      body: 'We persist configuration details, client redirect URIs, OAuth tokens, and MCP API keys inside the local SQLite database. Every secret is encrypted with your MASTER_KEY and stored alongside minimal metadata such as timestamps and scopes.'
+    },
+    {
+      heading: 'How we use it',
+      body: 'Your data exists purely to power authentication flows and validate API keys. The server never exfiltrates data beyond your instance, and there is no tracking or marketing data collection.'
+    },
+    {
+      heading: 'Security & retention',
+      body: 'Authorization codes and access tokens expire according to CODE_TTL_SECONDS and TOKEN_TTL_SECONDS. Deleting a connection or revoking an API key removes all related secrets. Keep MASTER_KEY secret and rotate it if you suspect any exposure.'
+    },
+    {
+      heading: 'Third-party relationships',
+      body: 'This service depends on Google Workspace APIs, Google OAuth, and any reverse proxy you deploy. You control which third parties receive workspace data by configuring Google OAuth credentials, redirect URIs, and allowed scopes.'
+    }
+  ]));
+});
+
+app.get('/tos', (req: Request, res: Response) => {
+  res.type('html').send(renderLegalPage('Terms of Service', [
+    {
+      heading: 'Acceptance',
+      body: 'By running and interacting with this server you accept these terms. Operate it on your infrastructure, safeguard your secrets, and comply with Google Workspace terms.'
+    },
+    {
+      heading: 'User responsibilities',
+      body: 'Configure valid redirect URIs, restrict shipped OAuth scopes, and keep your credentials confidential. Any misconfiguration that exposes data or violates Google policies is your responsibility.'
+    },
+    {
+      heading: 'API key & OAuth usage',
+      body: 'Issue a unique API key per client, rotate them on suspicion of compromise, and honor the built-in rate limits. Abuse such as credential stuffing, scraping beyond scope, or circumventing protections may result in revoked access.'
+    },
+    {
+      heading: 'Termination and changes',
+      body: 'Stop the service or delete the database to terminate. These terms may be updated with new releases, so revisit this page after upgrading to ensure compliance.'
+    }
+  ]));
 });
 
 app.post('/api/api-keys', apiKeyLimiter, async (req: Request, res: Response) => {

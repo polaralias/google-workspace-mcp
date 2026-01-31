@@ -184,6 +184,7 @@ npm run dev
 - Use HTTPS in production
 - Review and restrict OAuth scopes as needed
 - Rotate credentials periodically
+- Terms of Service and Privacy Policy are available at `/tos` and `/privacy-policy` on your deployed domain.
 
 ## License
 
