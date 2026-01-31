@@ -61,6 +61,8 @@ GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
 # Optional
 API_KEY_MODE=user_bound
 REDIRECT_URI_ALLOWLIST=localhost,127.0.0.1
+BASE_URL=https://your-public-domain.example
+TRUST_PROXY=1
 ```
 
 ### Google Cloud Setup
@@ -149,6 +151,9 @@ npm run cli -- api-keys revoke <api-key-id>
 | `GOOGLE_OAUTH_CLIENT_SECRET` | Yes* | - | Google OAuth Client Secret |
 | `API_KEY_MODE` | No | - | Set to `user_bound` to enable API key mode |
 | `REDIRECT_URI_ALLOWLIST` | No | - | Comma-separated list of allowed redirect domains |
+| `WORKSPACE_EXTERNAL_URL` | No | - | Public base URL used for OAuth metadata and redirects |
+| `BASE_URL` | No | - | Alias of `WORKSPACE_EXTERNAL_URL` (public base URL) |
+| `TRUST_PROXY` | No | - | Express trust proxy setting (e.g. `1`, `true`, `false`) |
 | `GOOGLE_MCP_CREDENTIALS_DIR` | No | `~/.google_workspace_mcp/credentials` | Credential storage path |
 | `CODE_TTL_SECONDS` | No | `90` | Auth code expiry time |
 | `TOKEN_TTL_SECONDS` | No | `3600` | Access token expiry time |

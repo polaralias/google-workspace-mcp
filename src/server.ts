@@ -26,7 +26,25 @@ if (!config.DATABASE_URL) {
 
 const app = express();
 app.disable('x-powered-by');
-app.set('trust proxy', true);
+function parseTrustProxy(value: string | undefined): boolean | number | string {
+  if (!value) {
+    return true;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1' || normalized === 'yes') {
+    return true;
+  }
+  if (normalized === 'false' || normalized === '0' || normalized === 'no') {
+    return false;
+  }
+  const asNumber = Number(value);
+  if (!Number.isNaN(asNumber)) {
+    return asNumber;
+  }
+  return value;
+}
+
+app.set('trust proxy', parseTrustProxy(config.TRUST_PROXY));
 app.use(express.json({ limit: '200kb' }));
 app.use(cookieParser(config.MASTER_KEY));
 
@@ -83,7 +101,7 @@ function getGoogleRedirectUri(req: Request): string {
   if (config.GOOGLE_OAUTH_REDIRECT_URI) {
     return config.GOOGLE_OAUTH_REDIRECT_URI;
   }
-  const baseUrl = config.WORKSPACE_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
+  const baseUrl = config.WORKSPACE_EXTERNAL_URL || config.BASE_URL || `${req.protocol}://${req.get('host')}`;
   return `${baseUrl}/auth/google/callback`;
 }
 
@@ -109,7 +127,7 @@ app.get('/api/connect-schema', (req: Request, res: Response) => {
 });
 
 app.get('/.well-known/oauth-authorization-server', (req: Request, res: Response) => {
-  const baseUrl = config.WORKSPACE_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
+  const baseUrl = config.WORKSPACE_EXTERNAL_URL || config.BASE_URL || `${req.protocol}://${req.get('host')}`;
   res.json({
     issuer: baseUrl,
     authorization_endpoint: `${baseUrl}/authorize`,
