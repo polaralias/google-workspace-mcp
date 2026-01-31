@@ -21,7 +21,7 @@ A comprehensive Model Context Protocol (MCP) server for Google Workspace, built 
 ### Prerequisites
 
 - Node.js 20+
-- PostgreSQL 14+
+- SQLite (no external DB required)
 - A Google Cloud Project with necessary APIs enabled
 
 ### Installation
@@ -51,7 +51,7 @@ cp .env.example .env
 ```env
 # Required
 PORT=3000
-DATABASE_URL=postgres://user:password@localhost: 5432/gws_mcp
+DATABASE_URL=sqlite:///data/mcp.db
 MASTER_KEY=your-64-character-hex-key-for-encryption
 
 # Google OAuth (required for OAuth flow)
@@ -100,7 +100,6 @@ The server will start on `http://localhost:3000` (or your configured PORT).
 
 ```bash
 # Set required environment variables
-export POSTGRES_PASSWORD=your-secure-password
 export MASTER_KEY=your-64-char-hex-key
 
 # Start with docker-compose
@@ -144,7 +143,7 @@ npm run cli -- api-keys revoke <api-key-id>
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `PORT` | No | `3000` | Server port |
-| `DATABASE_URL` | Yes | - | PostgreSQL connection string |
+| `DATABASE_URL` | Yes | - | SQLite connection string (e.g. `sqlite:///data/mcp.db`) |
 | `MASTER_KEY` | Yes | - | Encryption key (64 hex chars recommended) |
 | `GOOGLE_OAUTH_CLIENT_ID` | Yes* | - | Google OAuth Client ID |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | Yes* | - | Google OAuth Client Secret |

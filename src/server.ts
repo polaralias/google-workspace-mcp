@@ -5,7 +5,9 @@ import path from 'path';
 import * as fs from 'fs/promises';
 import * as crypto from 'crypto';
 import { config, getMasterKeyInfo } from './env';
-import { runMigrations, query, withTransaction } from './db';
+import { and, eq, gt } from 'drizzle-orm';
+import { runMigrations, db } from './db';
+import { apiKeys, authCodes, clients, connections, sessions, userConfigs } from './db/schema';
 import { encryptJson, decryptJson, sha256Hex, randomToken, base64url } from './crypto';
 import { getSchema, validateConfig, splitSecrets } from './configSchema';
 import { GoogleMcpServer } from './mcp';
@@ -159,15 +161,19 @@ app.post('/api/api-keys', apiKeyLimiter, async (req: Request, res: Response) => 
     const userConfigId = crypto.randomUUID();
     const apiKeyId = crypto.randomUUID();
 
-    await withTransaction(async client => {
-      await client.query(
-        'INSERT INTO user_configs (id, config_enc) VALUES ($1, $2)',
-        [userConfigId, encryptedConfig]
-      );
-      await client.query(
-        'INSERT INTO api_keys (id, user_config_id, key_hash) VALUES ($1, $2, $3)',
-        [apiKeyId, userConfigId, keyHash]
-      );
+    const createdAt = new Date();
+    await db.transaction(tx => {
+      tx.insert(userConfigs).values({
+        id: userConfigId,
+        configEnc: encryptedConfig,
+        createdAt
+      }).run();
+      tx.insert(apiKeys).values({
+        id: apiKeyId,
+        userConfigId,
+        keyHash,
+        createdAt
+      }).run();
     });
 
     res.json({ apiKey });
@@ -310,15 +316,24 @@ app.get('/auth/google/callback', async (req: Request, res: Response) => {
     // Encrypt empty secrets since we use credentialStore
     const encryptedSecrets = encryptJson(config.MASTER_KEY, {});
 
-    await withTransaction(async client => {
-      await client.query(
-        'INSERT INTO connections (id, client_id, name, encrypted_secrets, config) VALUES ($1, $2, $3, $4, $5)',
-        [connectionId, client_id, `Google (${email})`, encryptedSecrets, JSON.stringify(connectionConfig)]
-      );
-      await client.query(
-        'INSERT INTO auth_codes (code_hash, connection_id, code_challenge, code_challenge_method, expires_at) VALUES ($1, $2, $3, $4, $5)',
-        [authCodeHash, connectionId, code_challenge, code_challenge_method, expiresAt]
-      );
+    const createdAt = new Date();
+    await db.transaction(tx => {
+      tx.insert(connections).values({
+        id: connectionId,
+        clientId: client_id,
+        name: `Google (${email})`,
+        encryptedSecrets,
+        config: connectionConfig,
+        createdAt
+      }).run();
+      tx.insert(authCodes).values({
+        codeHash: authCodeHash,
+        connectionId,
+        codeChallenge: code_challenge,
+        codeChallengeMethod: code_challenge_method,
+        expiresAt,
+        createdAt
+      }).run();
     });
 
     // 7. Redirect back to MCP Client
@@ -370,10 +385,11 @@ app.post('/register', registerLimiter, async (req: Request, res: Response) => {
 
   const clientId = `client_${crypto.randomBytes(16).toString('hex')}`;
   try {
-    await query('INSERT INTO clients (client_id, redirect_uris) VALUES ($1, $2)', [
+    await db.insert(clients).values({
       clientId,
-      JSON.stringify(normalized)
-    ]);
+      redirectUris: normalized,
+      createdAt: new Date()
+    }).run();
     res.json({ client_id: clientId });
   } catch (err) {
     console.error('Failed to register client', err);
@@ -396,12 +412,15 @@ app.get('/authorize', async (req: Request, res: Response) => {
   }
 
   try {
-    const { rows } = await query('SELECT redirect_uris FROM clients WHERE client_id = $1', [client_id]);
-    if (rows.length === 0) {
+    const clientRow = await db.select({ redirectUris: clients.redirectUris })
+      .from(clients)
+      .where(eq(clients.clientId, String(client_id)))
+      .get();
+    if (!clientRow) {
       res.status(400).send('Invalid client_id');
       return;
     }
-    const clientRedirects = rows[0].redirect_uris;
+    const clientRedirects = clientRow.redirectUris;
     if (!isRedirectAllowed(redirect_uri as string, clientRedirects)) {
       res.status(403).send(`
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; text-align: center; color: #333; line-height: 1.5;">
@@ -475,12 +494,15 @@ app.post('/authorize', connectLimiter, async (req: Request, res: Response) => {
   }
 
   try {
-    const { rows } = await query('SELECT redirect_uris FROM clients WHERE client_id = $1', [client_id]);
-    if (rows.length === 0) {
+    const clientRow = await db.select({ redirectUris: clients.redirectUris })
+      .from(clients)
+      .where(eq(clients.clientId, String(client_id)))
+      .get();
+    if (!clientRow) {
       res.status(400).json({ error: 'Invalid client_id' });
       return;
     }
-    const clientRedirects = rows[0].redirect_uris;
+    const clientRedirects = clientRow.redirectUris;
     if (!isRedirectAllowed(redirect_uri, clientRedirects)) {
       res.status(400).json({
         error: `The redirect URI ${redirect_uri} is not allowed. Please raise a GitHub issue: https://github.com/polaralias/google-workspace-mcp`
@@ -496,15 +518,24 @@ app.post('/authorize', connectLimiter, async (req: Request, res: Response) => {
     const authCodeHash = sha256Hex(authCode);
     const expiresAt = new Date(Date.now() + config.CODE_TTL_SECONDS * 1000);
 
-    await withTransaction(async client => {
-      await client.query(
-        'INSERT INTO connections (id, client_id, name, encrypted_secrets, config) VALUES ($1, $2, $3, $4, $5)',
-        [connectionId, client_id, name || null, encryptedSecrets, JSON.stringify(publicConfig)]
-      );
-      await client.query(
-        'INSERT INTO auth_codes (code_hash, connection_id, code_challenge, code_challenge_method, expires_at) VALUES ($1, $2, $3, $4, $5)',
-        [authCodeHash, connectionId, code_challenge, code_challenge_method, expiresAt]
-      );
+    const createdAt = new Date();
+    await db.transaction(tx => {
+      tx.insert(connections).values({
+        id: connectionId,
+        clientId: client_id,
+        name: name || null,
+        encryptedSecrets,
+        config: publicConfig,
+        createdAt
+      }).run();
+      tx.insert(authCodes).values({
+        codeHash: authCodeHash,
+        connectionId,
+        codeChallenge: code_challenge,
+        codeChallengeMethod: code_challenge_method,
+        expiresAt,
+        createdAt
+      }).run();
     });
 
     const redirectUrl = new URL(redirect_uri);
@@ -529,12 +560,15 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
   }
 
   try {
-    const { rows: clientRows } = await query('SELECT redirect_uris FROM clients WHERE client_id = $1', [client_id]);
-    if (clientRows.length === 0) {
+    const clientRow = await db.select({ redirectUris: clients.redirectUris })
+      .from(clients)
+      .where(eq(clients.clientId, String(client_id)))
+      .get();
+    if (!clientRow) {
       res.status(400).json({ error: 'Invalid client_id' });
       return;
     }
-    const clientRedirects = clientRows[0].redirect_uris;
+    const clientRedirects = clientRow.redirectUris;
     if (!isRedirectAllowed(redirect_uri, clientRedirects)) {
       res.status(400).json({
         error: `The redirect URI ${redirect_uri} is not allowed. Please raise a GitHub issue: https://github.com/polaralias/google-workspace-mcp`
@@ -543,15 +577,26 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
     }
 
     const codeHash = sha256Hex(code);
-    const authCodeRow = await withTransaction(async client => {
-      const { rows } = await client.query(
-        'DELETE FROM auth_codes WHERE code_hash = $1 AND expires_at > NOW() RETURNING connection_id, code_challenge, code_challenge_method',
-        [codeHash]
-      );
-      if (rows.length === 0) {
+    const now = new Date();
+    const authCodeRow = await db.transaction(tx => {
+      const row = tx.select({
+        connectionId: authCodes.connectionId,
+        codeChallenge: authCodes.codeChallenge,
+        codeChallengeMethod: authCodes.codeChallengeMethod
+      })
+        .from(authCodes)
+        .where(and(eq(authCodes.codeHash, codeHash), gt(authCodes.expiresAt, now)))
+        .get();
+
+      if (!row) {
         return null;
       }
-      return rows[0];
+
+      tx.delete(authCodes)
+        .where(and(eq(authCodes.codeHash, codeHash), gt(authCodes.expiresAt, now)))
+        .run();
+
+      return row;
     });
 
     if (!authCodeRow) {
@@ -559,16 +604,16 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
       return;
     }
 
-    const { rows: connectionRows } = await query(
-      'SELECT client_id FROM connections WHERE id = $1',
-      [authCodeRow.connection_id]
-    );
-    if (connectionRows.length === 0 || connectionRows[0].client_id !== client_id) {
+    const connectionRow = await db.select({ clientId: connections.clientId })
+      .from(connections)
+      .where(eq(connections.id, authCodeRow.connectionId))
+      .get();
+    if (!connectionRow || connectionRow.clientId !== client_id) {
       res.status(400).json({ error: 'Invalid client for code' });
       return;
     }
 
-    const verified = verifyPkce(authCodeRow.code_challenge_method, authCodeRow.code_challenge, code_verifier);
+    const verified = verifyPkce(authCodeRow.codeChallengeMethod, authCodeRow.codeChallenge, code_verifier);
     if (!verified) {
       res.status(400).json({ error: 'Invalid code_verifier' });
       return;
@@ -579,10 +624,13 @@ app.post('/token', tokenLimiter, async (req: Request, res: Response) => {
     const sessionId = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + config.TOKEN_TTL_SECONDS * 1000);
 
-    await query(
-      'INSERT INTO sessions (id, token_hash, connection_id, expires_at) VALUES ($1, $2, $3, $4)',
-      [sessionId, tokenHash, authCodeRow.connection_id, expiresAt]
-    );
+    await db.insert(sessions).values({
+      id: sessionId,
+      tokenHash,
+      connectionId: authCodeRow.connectionId,
+      expiresAt,
+      createdAt: new Date()
+    }).run();
 
     res.json({
       access_token: token,
@@ -668,19 +716,27 @@ async function start() {
 
       try {
         // Check session (OAuth-issued)
-        const { rows: sessionRows } = await query(
-          'SELECT s.id, c.client_id, c.config FROM sessions s JOIN connections c ON s.connection_id = c.id WHERE s.token_hash = $1 AND s.expires_at > NOW()',
-          [tokenHash]
-        );
+        const session = await db.select({
+          id: sessions.id,
+          clientId: connections.clientId,
+          config: connections.config
+        })
+          .from(sessions)
+          .innerJoin(connections, eq(sessions.connectionId, connections.id))
+          .where(and(eq(sessions.tokenHash, tokenHash), gt(sessions.expiresAt, new Date())))
+          .get();
 
-        if (sessionRows.length > 0) {
-          const session = sessionRows[0];
+        if (session) {
+          const configValue = session.config;
+          const configPayload = typeof configValue === 'string'
+            ? JSON.parse(configValue)
+            : configValue;
           (req as any).auth = {
             token,
-            clientId: session.client_id,
+            clientId: session.clientId,
             scopes: [], // Should extract from config if needed
             extra: {
-              config: JSON.parse(session.config)
+              config: configPayload
             }
           };
           next();
@@ -688,14 +744,17 @@ async function start() {
         }
 
         // Check API Key (User-bound)
-        const { rows: apiKeyRows } = await query(
-          'SELECT ak.id, uc.config_enc FROM api_keys ak JOIN user_configs uc ON ak.user_config_id = uc.id WHERE ak.key_hash = $1',
-          [tokenHash]
-        );
+        const apiKeyRow = await db.select({
+          id: apiKeys.id,
+          configEnc: userConfigs.configEnc
+        })
+          .from(apiKeys)
+          .innerJoin(userConfigs, eq(apiKeys.userConfigId, userConfigs.id))
+          .where(eq(apiKeys.keyHash, tokenHash))
+          .get();
 
-        if (apiKeyRows.length > 0) {
-          const apiKeyRow = apiKeyRows[0];
-          const decryptedConfig = decryptJson(config.MASTER_KEY, apiKeyRow.config_enc);
+        if (apiKeyRow) {
+          const decryptedConfig = decryptJson(config.MASTER_KEY, apiKeyRow.configEnc);
 
           (req as any).auth = {
             token,
@@ -750,4 +809,3 @@ if (require.main === module) {
 }
 
 export { app, start };
-

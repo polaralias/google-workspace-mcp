@@ -43,6 +43,8 @@ mcp_server_debug.log
 /. claude
 .mcp. json
 claude. md
+data/
+store_creds/
 
 # ---- Python (legacy/tools) --------------------------------------------------
 __pycache__/

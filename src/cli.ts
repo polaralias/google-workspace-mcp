@@ -1,48 +1,61 @@
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import { config } from './env';
-import { runMigrations, query, withTransaction } from './db';
+import { runMigrations, db } from './db';
+import { apiKeys, connections } from './db/schema';
 
 async function listConnections() {
-  const { rows } = await query(
-    'SELECT id, name, created_at FROM connections ORDER BY created_at DESC'
-  );
+  const rows = await db.select({
+    id: connections.id,
+    name: connections.name,
+    createdAt: connections.createdAt
+  })
+    .from(connections)
+    .orderBy(desc(connections.createdAt))
+    .all();
+
   if (rows.length === 0) {
     console.log('No connections found');
     return;
   }
-  rows.forEach((row: any) => {
+  rows.forEach(row => {
     const name = row.name ? ` (${row.name})` : '';
-    console.log(`${row.id}${name} - ${row.created_at.toISOString()}`);
+    console.log(`${row.id}${name} - ${row.createdAt.toISOString()}`);
   });
 }
 
 async function deleteConnection(id: string) {
-  await withTransaction(async client => {
-    await client.query('DELETE FROM connections WHERE id = $1', [id]);
-  });
+  await db.delete(connections).where(eq(connections.id, id)).run();
   console.log(`Deleted connection ${id}`);
 }
 
 async function listApiKeys() {
-  const { rows } = await query(
-    'SELECT id, key_hash, created_at, revoked_at FROM api_keys ORDER BY created_at DESC'
-  );
+  const rows = await db.select({
+    id: apiKeys.id,
+    keyHash: apiKeys.keyHash,
+    createdAt: apiKeys.createdAt,
+    revokedAt: apiKeys.revokedAt
+  })
+    .from(apiKeys)
+    .orderBy(desc(apiKeys.createdAt))
+    .all();
+
   if (rows.length === 0) {
     console.log('No API keys found');
     return;
   }
-  rows.forEach((row: any) => {
-    const masked = row.key_hash ? `${row.key_hash.slice(0, 6)}...` : 'unknown';
-    const revoked = row.revoked_at ? ` revoked_at=${row.revoked_at.toISOString()}` : '';
-    console.log(`${row.id} ${masked} created_at=${row.created_at.toISOString()}${revoked}`);
+  rows.forEach(row => {
+    const masked = row.keyHash ? `${row.keyHash.slice(0, 6)}...` : 'unknown';
+    const revoked = row.revokedAt ? ` revoked_at=${row.revokedAt.toISOString()}` : '';
+    console.log(`${row.id} ${masked} created_at=${row.createdAt.toISOString()}${revoked}`);
   });
 }
 
 async function revokeApiKey(id: string) {
-  const { rowCount } = await query(
-    'UPDATE api_keys SET revoked_at = NOW() WHERE id = $1 AND revoked_at IS NULL',
-    [id]
-  );
-  if (rowCount === 0) {
+  const result = await db.update(apiKeys)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(apiKeys.id, id), isNull(apiKeys.revokedAt)))
+    .run();
+  if (result.changes === 0) {
     console.log(`API key ${id} not found or already revoked`);
     return;
   }
@@ -97,4 +110,3 @@ main().catch(err => {
   console.error('CLI failed', err);
   process.exit(1);
 });
-

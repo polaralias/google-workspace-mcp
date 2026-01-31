@@ -11,7 +11,7 @@ describe('api', () => {
 
   beforeAll(async () => {
     process.env.MASTER_KEY = 'a'.repeat(64);
-    process.env.DATABASE_URL = 'postgres://localhost/test';
+    process.env.DATABASE_URL = 'sqlite::memory:';
     process.env.REDIRECT_URI_ALLOWLIST = 'example.com';
     process.env.API_KEY_MODE = 'user_bound';
 

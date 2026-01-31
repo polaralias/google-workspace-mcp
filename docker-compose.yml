@@ -5,47 +5,29 @@ services:
     build: .
     container_name: gws_mcp
     ports:
-      - "${GWS_PORT:-3000}:${GWS_PORT:-3000}"
+      - "${PORT:-3000}:${PORT:-3000}"
     environment:
-      PORT: ${GWS_PORT:-3000}
-      DATABASE_URL: "postgres://${GWS_POSTGRES_USER:-gws_mcp}:${GWS_POSTGRES_PASSWORD}@db:5432/${GWS_POSTGRES_DB:-gws_mcp}"
-      MASTER_KEY: "${GWS_MASTER_KEY:?GWS_MASTER_KEY environment variable is required. Generate with: openssl rand -hex 32}"
-      API_KEY_MODE: ${GWS_API_KEY_MODE:-user_bound}
-      REDIRECT_URI_ALLOWLIST: "${GWS_REDIRECT_URI_ALLOWLIST:-https://chatgpt.com/,https://chat.openai.com/,localhost,127.0.0.1}"
-      REDIRECT_URI_ALLOWLIST_MODE: ${GWS_REDIRECT_URI_ALLOWLIST_MODE:-prefix}
-      CODE_TTL_SECONDS: ${GWS_CODE_TTL_SECONDS:-90}
-      TOKEN_TTL_SECONDS: ${GWS_TOKEN_TTL_SECONDS:-3600}
+      PORT: ${PORT:-3000}
+      DATABASE_URL: "${DATABASE_URL:-sqlite:///data/mcp.db}"
+      MASTER_KEY: "${MASTER_KEY:?MASTER_KEY environment variable is required. Generate with: openssl rand -hex 32}"
+      API_KEY_MODE: ${API_KEY_MODE:-user_bound}
+      REDIRECT_URI_ALLOWLIST: "${REDIRECT_URI_ALLOWLIST:-https://chatgpt.com/,https://chat.openai.com/,localhost,127.0.0.1}"
+      REDIRECT_URI_ALLOWLIST_MODE: ${REDIRECT_URI_ALLOWLIST_MODE:-prefix}
+      CODE_TTL_SECONDS: ${CODE_TTL_SECONDS:-90}
+      TOKEN_TTL_SECONDS: ${TOKEN_TTL_SECONDS:-3600}
       GOOGLE_MCP_CREDENTIALS_DIR: /app/store_creds
       # Google OAuth (required for OAuth flow)
-      GOOGLE_OAUTH_CLIENT_ID: ${GWS_GOOGLE_OAUTH_CLIENT_ID:-}
-      GOOGLE_OAUTH_CLIENT_SECRET: ${GWS_GOOGLE_OAUTH_CLIENT_SECRET:-}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
       # Development Settings (set to true for localhost testing)
-      OAUTH2_ALLOW_INSECURE_TRANSPORT: ${GWS_OAUTH2_ALLOW_INSECURE_TRANSPORT:-false}
-      OAUTH2_ENABLE_DEBUG: ${GWS_OAUTH2_ENABLE_DEBUG:-false}
+      OAUTH2_ALLOW_INSECURE_TRANSPORT: ${OAUTH2_ALLOW_INSECURE_TRANSPORT:-false}
+      OAUTH2_ENABLE_DEBUG: ${OAUTH2_ENABLE_DEBUG:-false}
       # Legacy Compatibility (recommended during migration)
-      OAUTH2_ENABLE_LEGACY_AUTH: ${GWS_OAUTH2_ENABLE_LEGACY_AUTH:-true}
+      OAUTH2_ENABLE_LEGACY_AUTH: ${OAUTH2_ENABLE_LEGACY_AUTH:-true}
     volumes:
       - ./client_secret.json:/app/client_secret.json:ro
-      - store_creds:/app/store_creds:rw
+      - ./data:/data:rw
+      - ./store_creds:/app/store_creds:rw
     env_file:
       - .env
-    depends_on:
-      - db
     restart: unless-stopped
-
-  db:
-    image: postgres:16-alpine
-    container_name: gws_mcp_db
-    environment:
-      POSTGRES_DB: ${GWS_POSTGRES_DB:-gws_mcp}
-      POSTGRES_USER: ${GWS_POSTGRES_USER:-gws_mcp}
-      POSTGRES_PASSWORD: "${GWS_POSTGRES_PASSWORD:?GWS_POSTGRES_PASSWORD environment variable is required}"
-    ports:
-      - "5433:5432"
-    volumes:
-      - gws_mcp_db:/var/lib/postgresql/data
-    restart: unless-stopped
-
-volumes:
-  store_creds:
-  gws_mcp_db:
