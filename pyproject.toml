@@ -1,0 +1,22 @@
+[project]
+name = "google-workspace-mcp"
+version = "0.1.0"
+description = "Native MCP server for Google Workspace"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "cryptography>=44.0.0",
+  "fastmcp>=3.1.0",
+  "gkeepapi>=0.16.0",
+  "google-api-python-client>=2.170.0",
+  "google-auth>=2.34.0",
+  "google-auth-oauthlib>=1.2.0",
+  "requests>=2.32.0"
+]
+
+[project.scripts]
+google-workspace-mcp = "server:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"

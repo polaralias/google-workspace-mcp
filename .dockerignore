@@ -1,0 +1,17 @@
+.git
+.venv
+venv
+__pycache__
+*.egg-info
+*.log
+.env
+.env.*
+.oauth
+gws.json
+.pytest_cache
+.mypy_cache
+.coverage
+htmlcov
+build
+dist
+state

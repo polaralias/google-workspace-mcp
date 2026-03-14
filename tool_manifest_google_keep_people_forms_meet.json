@@ -1,0 +1,264 @@
+{
+  "tools": [
+    {
+      "name": "list_keep_notes",
+      "description": "List Google Keep notes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "filter": { "type": "string" },
+          "page_size": { "type": "number", "default": 25 },
+          "page_token": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email"]
+      }
+    },
+    {
+      "name": "get_keep_note",
+      "description": "Get a Google Keep note.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "note_name": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "note_name"]
+      }
+    },
+    {
+      "name": "create_keep_note",
+      "description": "Create a Google Keep note.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "title": { "type": "string" },
+          "text": { "type": "string" },
+          "list_items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": { "type": "string" },
+                "checked": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "title"]
+      }
+    },
+    {
+      "name": "delete_keep_note",
+      "description": "Delete a Google Keep note.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "note_name": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "note_name"]
+      }
+    },
+    {
+      "name": "download_keep_attachment",
+      "description": "Download a Google Keep attachment.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "attachment_name": { "type": "string" },
+          "mime_type": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "attachment_name", "mime_type"]
+      }
+    },
+    {
+      "name": "share_keep_note",
+      "description": "Share a Google Keep note with writers.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "note_name": { "type": "string" },
+          "writers": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "note_name", "writers"]
+      }
+    },
+    {
+      "name": "unshare_keep_note",
+      "description": "Remove sharing from a Google Keep note.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "note_name": { "type": "string" },
+          "emails_or_groups": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "note_name", "emails_or_groups"]
+      }
+    },
+    {
+      "name": "get_keep_note_permissions",
+      "description": "List permissions on a Google Keep note.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "note_name": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "note_name"]
+      }
+    },
+    {
+      "name": "list_contacts",
+      "description": "List Google contacts.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "person_fields": { "type": "string" },
+          "page_size": { "type": "number", "default": 100 },
+          "page_token": { "type": "string" },
+          "sort_order": {
+            "type": "string",
+            "enum": [
+              "LAST_MODIFIED_ASCENDING",
+              "LAST_MODIFIED_DESCENDING",
+              "FIRST_NAME_ASCENDING",
+              "LAST_NAME_ASCENDING"
+            ]
+          },
+          "sync_token": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email"]
+      }
+    },
+    {
+      "name": "search_contacts",
+      "description": "Search Google contacts.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "query": { "type": "string" },
+          "page_size": { "type": "number", "default": 10 },
+          "read_mask": { "type": "string" },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "READ_SOURCE_TYPE_UNSPECIFIED",
+                "READ_SOURCE_TYPE_PROFILE",
+                "READ_SOURCE_TYPE_CONTACT",
+                "READ_SOURCE_TYPE_DOMAIN_CONTACT",
+                "READ_SOURCE_TYPE_OTHER_CONTACT"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "query"]
+      }
+    },
+    {
+      "name": "create_contact",
+      "description": "Create a Google contact.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "person": { "type": "object" },
+          "person_fields": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "person"]
+      }
+    },
+    {
+      "name": "update_contact",
+      "description": "Update a Google contact.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "resource_name": { "type": "string" },
+          "person": { "type": "object" },
+          "update_person_fields": { "type": "string" },
+          "person_fields": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "resource_name", "person"]
+      }
+    },
+    {
+      "name": "delete_contact",
+      "description": "Delete a Google contact.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "resource_name": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "resource_name"]
+      }
+    },
+    {
+      "name": "batch_update_form",
+      "description": "Apply a batch update to a Google Form.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "form_id": { "type": "string" },
+          "requests": { "type": "array", "items": { "type": "object" } },
+          "include_form_in_response": { "type": "boolean", "default": false },
+          "write_control": { "type": "object" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "form_id", "requests"]
+      }
+    },
+    {
+      "name": "list_conference_records",
+      "description": "List Google Meet conference records.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "page_size": { "type": "number", "default": 25 },
+          "page_token": { "type": "string" },
+          "filter": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email"]
+      }
+    },
+    {
+      "name": "get_conference_record",
+      "description": "Get a Google Meet conference record.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "name"]
+      }
+    }
+  ]
+}

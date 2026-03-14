@@ -1,0 +1,208 @@
+{
+  "tools": [
+    {
+      "name": "create_drive_folder",
+      "description": "Create a folder in Google Drive.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "folder_name": { "type": "string" },
+          "parent_folder_id": { "type": "string", "default": "root" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "folder_name"]
+      }
+    },
+    {
+      "name": "copy_drive_file",
+      "description": "Copy a file in Google Drive.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "file_id": { "type": "string" },
+          "name": { "type": "string" },
+          "parent_folder_id": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "file_id"]
+      }
+    },
+    {
+      "name": "trash_drive_file",
+      "description": "Move a Drive file to trash.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "file_id": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "file_id"]
+      }
+    },
+    {
+      "name": "untrash_drive_file",
+      "description": "Restore a Drive file from trash.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "file_id": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "file_id"]
+      }
+    },
+    {
+      "name": "delete_drive_file",
+      "description": "Delete a Drive file permanently.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "file_id": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "file_id"]
+      }
+    },
+    {
+      "name": "list_drive_revisions",
+      "description": "List revisions for a Drive file.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "file_id": { "type": "string" },
+          "page_size": { "type": "number", "default": 50 },
+          "page_token": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "file_id"]
+      }
+    },
+    {
+      "name": "get_drive_revision",
+      "description": "Get a specific Drive file revision.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "file_id": { "type": "string" },
+          "revision_id": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "file_id", "revision_id"]
+      }
+    },
+    {
+      "name": "list_shared_drives",
+      "description": "List shared drives visible to the user.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "page_size": { "type": "number", "default": 100 },
+          "page_token": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email"]
+      }
+    },
+    {
+      "name": "archive_gmail_message",
+      "description": "Archive a Gmail message.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "message_id": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "message_id"]
+      }
+    },
+    {
+      "name": "trash_gmail_message",
+      "description": "Move a Gmail message to trash.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "message_id": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "message_id"]
+      }
+    },
+    {
+      "name": "mark_gmail_read_unread",
+      "description": "Mark a Gmail message as read or unread.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "message_id": { "type": "string" },
+          "mark_read": { "type": "boolean", "default": true }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "message_id"]
+      }
+    },
+    {
+      "name": "star_unstar_gmail_message",
+      "description": "Star or unstar a Gmail message.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "message_id": { "type": "string" },
+          "starred": { "type": "boolean", "default": true }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "message_id"]
+      }
+    },
+    {
+      "name": "list_gmail_filters",
+      "description": "List Gmail filters.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email"]
+      }
+    },
+    {
+      "name": "create_gmail_filter",
+      "description": "Create a Gmail filter.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "criteria": { "type": "object" },
+          "action": { "type": "object" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "criteria", "action"]
+      }
+    },
+    {
+      "name": "delete_gmail_filter",
+      "description": "Delete a Gmail filter.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": { "type": "string" },
+          "filter_id": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "required": ["user_google_email", "filter_id"]
+      }
+    }
+  ]
+}

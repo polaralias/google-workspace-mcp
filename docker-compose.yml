@@ -1,0 +1,29 @@
+services:
+  google-workspace-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: google-workspace-mcp
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "${GOOGLE_WORKSPACE_MCP_PORT:-3002}"
+      MCP_PATH: "${GOOGLE_WORKSPACE_MCP_PATH:-/mcp}"
+      GOOGLE_MCP_CREDENTIALS_DIR: /app/.oauth
+    volumes:
+      - ./.oauth:/app/.oauth
+    ports:
+      - "${GOOGLE_WORKSPACE_MCP_HOST_PORT:-3002}:${GOOGLE_WORKSPACE_MCP_PORT:-3002}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${GOOGLE_WORKSPACE_MCP_PORT:-3002}/health >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
+
+networks:
+  default:
+    name: reverse_proxy
+    external: true
