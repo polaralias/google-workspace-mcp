@@ -13,6 +13,11 @@ Standalone Python/FastMCP server for Google Workspace with direct HTTP transport
   - Google Keep master-token access
   - `GOOGLE_API_KEY` for public-data-only requests
 
+## Reference Docs
+
+- [Tool reference](docs/tool-reference.md) contains the full public tool inventory and parameter schemas (121 tools).
+- [Configuration reference](docs/configuration.md) explains the supported auth sources, env vars, ports, and deployment notes.
+
 ## Configuration
 
 1. Copy `.env.example` to `.env`
