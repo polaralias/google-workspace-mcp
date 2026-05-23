@@ -15,7 +15,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock README.md fastmcp.json server.py ./
+COPY pyproject.toml uv.lock README.md fastmcp.json ./
+COPY *.py ./
 COPY tool_manifest_google.json ./
 COPY tool_manifest_google_admin_calendar_chat_docs.json ./
 COPY tool_manifest_google_drive_gmail.json ./

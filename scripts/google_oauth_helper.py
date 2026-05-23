@@ -21,11 +21,6 @@ OPENID_SCOPE = "openid"
 USERINFO_EMAIL_SCOPE = "https://www.googleapis.com/auth/userinfo.email"
 SERVICE_SCOPES: dict[str, list[str]] = {
     "calendar": ["https://www.googleapis.com/auth/calendar"],
-    "chat": [
-        "https://www.googleapis.com/auth/chat.spaces",
-        "https://www.googleapis.com/auth/chat.memberships",
-        "https://www.googleapis.com/auth/chat.messages",
-    ],
     "docs": ["https://www.googleapis.com/auth/documents"],
     "drive": ["https://www.googleapis.com/auth/drive"],
     "forms": ["https://www.googleapis.com/auth/forms.body"],
@@ -44,7 +39,6 @@ SERVICE_SCOPES: dict[str, list[str]] = {
 }
 PROFILE_SERVICES: dict[str, list[str]] = {
     "calendar": ["calendar", "userinfo"],
-    "chat": ["chat", "userinfo"],
     "docs": ["docs", "userinfo"],
     "drive": ["drive", "userinfo"],
     "forms": ["forms", "userinfo"],
@@ -72,7 +66,6 @@ PROFILE_SERVICES: dict[str, list[str]] = {
     "tasks": ["tasks", "userinfo"],
     "workspace": [
         "calendar",
-        "chat",
         "docs",
         "drive",
         "forms",

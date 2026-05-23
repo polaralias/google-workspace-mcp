@@ -6,23 +6,46 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "range_name": { "type": "string" },
-          "values": { "type": "array", "items": { "type": "array", "items": {} } },
+          "user_google_email": {
+            "type": "string"
+          },
+          "spreadsheet_id": {
+            "type": "string"
+          },
+          "range_name": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {}
+            }
+          },
           "value_input_option": {
             "type": "string",
-            "enum": ["RAW", "USER_ENTERED"],
+            "enum": [
+              "RAW",
+              "USER_ENTERED"
+            ],
             "default": "USER_ENTERED"
           },
           "insert_data_option": {
             "type": "string",
-            "enum": ["OVERWRITE", "INSERT_ROWS"],
+            "enum": [
+              "OVERWRITE",
+              "INSERT_ROWS"
+            ],
             "default": "INSERT_ROWS"
           }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "range_name", "values"]
+        "required": [
+          "user_google_email",
+          "spreadsheet_id",
+          "range_name",
+          "values"
+        ]
       }
     },
     {
@@ -31,13 +54,32 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "ranges": { "type": "array", "items": { "type": "string" } },
-          "major_dimension": { "type": "string", "enum": ["ROWS", "COLUMNS"] }
+          "user_google_email": {
+            "type": "string"
+          },
+          "spreadsheet_id": {
+            "type": "string"
+          },
+          "ranges": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "major_dimension": {
+            "type": "string",
+            "enum": [
+              "ROWS",
+              "COLUMNS"
+            ]
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "ranges"]
+        "required": [
+          "user_google_email",
+          "spreadsheet_id",
+          "ranges"
+        ]
       }
     },
     {
@@ -46,201 +88,37 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "data": { "type": "array", "items": { "type": "object" } },
+          "user_google_email": {
+            "type": "string"
+          },
+          "spreadsheet_id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
           "value_input_option": {
             "type": "string",
-            "enum": ["RAW", "USER_ENTERED"],
+            "enum": [
+              "RAW",
+              "USER_ENTERED"
+            ],
             "default": "USER_ENTERED"
           },
-          "include_values_in_response": { "type": "boolean", "default": false }
+          "include_values_in_response": {
+            "type": "boolean",
+            "default": false
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "data"]
-      }
-    },
-    {
-      "name": "create_named_range",
-      "description": "Create a named range in a spreadsheet.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "name": { "type": "string" },
-          "grid_range": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "name", "grid_range"]
-      }
-    },
-    {
-      "name": "update_named_range",
-      "description": "Update a named range in a spreadsheet.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "named_range_id": { "type": "string" },
-          "name": { "type": "string" },
-          "grid_range": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "named_range_id", "name", "grid_range"]
-      }
-    },
-    {
-      "name": "delete_named_range",
-      "description": "Delete a named range from a spreadsheet.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "named_range_id": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "named_range_id"]
-      }
-    },
-    {
-      "name": "add_data_validation",
-      "description": "Add a data validation rule to a sheet range.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "grid_range": { "type": "object" },
-          "rule": { "type": "object" },
-          "filtered_rows_included": { "type": "boolean", "default": false }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "grid_range", "rule"]
-      }
-    },
-    {
-      "name": "set_protected_range",
-      "description": "Add a protected range to a spreadsheet.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "protected_range": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "protected_range"]
-      }
-    },
-    {
-      "name": "create_chart",
-      "description": "Create a chart in a spreadsheet.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "chart": { "type": "object" },
-          "chart_spec": { "type": "object" },
-          "position": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id"]
-      }
-    },
-    {
-      "name": "update_chart",
-      "description": "Update a chart spec in a spreadsheet.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "chart_id": { "type": "number" },
-          "chart_spec": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "chart_id", "chart_spec"]
-      }
-    },
-    {
-      "name": "create_pivot_table",
-      "description": "Create a pivot table in a spreadsheet.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "pivot_table": { "type": "object" },
-          "start": { "type": "object" },
-          "sheet_id": { "type": "number" },
-          "start_row_index": { "type": "number" },
-          "start_column_index": { "type": "number" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "pivot_table"]
-      }
-    },
-    {
-      "name": "set_text_style",
-      "description": "Apply text styles inside a Google Slides text box or shape.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "presentation_id": { "type": "string" },
-          "object_id": { "type": "string" },
-          "start_index": { "type": "number" },
-          "end_index": { "type": "number" },
-          "bold": { "type": "boolean" },
-          "italic": { "type": "boolean" },
-          "underline": { "type": "boolean" },
-          "strikethrough": { "type": "boolean" },
-          "link_url": { "type": "string" },
-          "font_size_pt": { "type": "number" },
-          "foreground_color": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "presentation_id", "object_id"]
-      }
-    },
-    {
-      "name": "replace_text_everywhere",
-      "description": "Replace text across a presentation.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "presentation_id": { "type": "string" },
-          "contains_text": { "type": "string" },
-          "replace_text": { "type": "string" },
-          "match_case": { "type": "boolean", "default": false }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "presentation_id", "contains_text", "replace_text"]
-      }
-    },
-    {
-      "name": "insert_image_from_url",
-      "description": "Insert an image into a Google Slides page from a URL.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "presentation_id": { "type": "string" },
-          "page_id": { "type": "string" },
-          "url": { "type": "string" },
-          "x": { "type": "number" },
-          "y": { "type": "number" },
-          "width": { "type": "number" },
-          "height": { "type": "number" },
-          "object_id": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "presentation_id", "page_id", "url", "x", "y", "width", "height"]
+        "required": [
+          "user_google_email",
+          "spreadsheet_id",
+          "data"
+        ]
       }
     },
     {
@@ -249,102 +127,18 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "presentation_id": { "type": "string" }
+          "user_google_email": {
+            "type": "string"
+          },
+          "presentation_id": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "presentation_id"]
-      }
-    },
-    {
-      "name": "reopen_task",
-      "description": "Reopen a Google Task.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "task_list_id": { "type": "string" },
-          "task_id": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "task_list_id", "task_id"]
-      }
-    },
-    {
-      "name": "set_task_due_date",
-      "description": "Set the due date for a Google Task.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "task_list_id": { "type": "string" },
-          "task_id": { "type": "string" },
-          "due": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "task_list_id", "task_id", "due"]
-      }
-    },
-    {
-      "name": "format_sheet_range",
-      "description": "Apply user-entered formatting to a sheet range.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "grid_range": { "type": "object" },
-          "cell_format": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "grid_range", "cell_format"]
-      }
-    },
-    {
-      "name": "add_conditional_formatting",
-      "description": "Add a conditional formatting rule.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "rule": { "type": "object" },
-          "index": { "type": "number", "default": 0 }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "rule"]
-      }
-    },
-    {
-      "name": "update_conditional_formatting",
-      "description": "Update a conditional formatting rule.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "index": { "type": "number" },
-          "rule": { "type": "object" },
-          "new_index": { "type": "number" },
-          "sheet_id": { "type": "number" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "index", "rule"]
-      }
-    },
-    {
-      "name": "delete_conditional_formatting",
-      "description": "Delete a conditional formatting rule.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "spreadsheet_id": { "type": "string" },
-          "sheet_id": { "type": "number" },
-          "index": { "type": "number" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "spreadsheet_id", "sheet_id", "index"]
+        "required": [
+          "user_google_email",
+          "presentation_id"
+        ]
       }
     }
   ]

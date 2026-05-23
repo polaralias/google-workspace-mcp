@@ -1,73 +1,47 @@
 # google-workspace-mcp
 
-Standalone Python/FastMCP server for Google Workspace with direct HTTP transport, static API-key auth, and no tunnel sidecar.
+Standalone Python/FastMCP server for Google Workspace and Google Keep master-token workflows.
 
-## Highlights
+The public server surface is intentionally limited to the 53 tools that have current support evidence. OAuth is the primary Google Workspace auth path. API key support is a narrow public-read compatibility path. Google Keep is supported only through the unofficial master-token flow.
 
-- Default MCP endpoint: `http://localhost:3002/mcp`
-- Default health endpoint: `http://localhost:3002/health`
-- Supports `GOOGLE_WORKSPACE_MCP_API_KEY`, `MCP_API_KEY`, or `MCP_API_KEYS`
-- Preserves existing Google auth flows:
-  - stored OAuth credentials in `.oauth/`
-  - service-account credentials
-  - Google Keep master-token access
-  - `GOOGLE_API_KEY` for public-data-only requests
+## Endpoints
 
-## Reference Docs
+- MCP: `http://localhost:3002/mcp`
+- Health: `http://localhost:3002/health`
 
-- [Tool reference](docs/tool-reference.md) contains the full public tool inventory and parameter schemas (121 tools).
-- [Configuration reference](docs/configuration.md) explains the supported auth sources, env vars, ports, and deployment notes.
+## Primary Docs
 
-## Configuration
+- [Configuration reference](docs/configuration.md)
+- [Verified support matrix](docs/product-specs/support-matrix.md)
+- [Per-tool support matrix](docs/generated/tool-support-matrix.md)
+- [Tool reference](docs/tool-reference.md)
+- [Architecture](ARCHITECTURE.md)
+- [Auth models](docs/product-specs/auth-models.md)
+- [Plans and archive index](docs/PLANS.md)
 
-1. Copy `.env.example` to `.env`
-2. Fill in the required values:
-   - `GOOGLE_WORKSPACE_MCP_API_KEY`
-   - one Google auth source:
-     - persisted OAuth credentials in `.oauth/`
-     - `GOOGLE_SERVICE_ACCOUNT_FILE` or `GOOGLE_SERVICE_ACCOUNT_JSON`
-     - `GOOGLE_KEEP_MASTER_TOKEN`
-     - `GOOGLE_API_KEY` for public-data-only tools
+## Supported Auth
 
-Common optional settings:
+- MCP bearer auth via `GOOGLE_WORKSPACE_MCP_API_KEY`, `MCP_API_KEY`, or `MCP_API_KEYS`
+- Stored OAuth credentials in `.oauth/` or `GOOGLE_MCP_CREDENTIALS_DIR`
+- `GOOGLE_API_KEY` for the documented public-read subset only
+- `GOOGLE_KEEP_EMAIL` plus `GOOGLE_KEEP_MASTER_TOKEN` for Keep-only flows
 
-- `GOOGLE_OAUTH_CLIENT_ID`
-- `GOOGLE_OAUTH_CLIENT_SECRET`
-- `GOOGLE_IMPERSONATED_USER`
-- `GOOGLE_DEFAULT_USER_EMAIL`
-- `GOOGLE_KEEP_EMAIL`
-- `GOOGLE_KEEP_MANAGED_LABEL`
-- `GOOGLE_WORKSPACE_MCP_PORT`
-- `GOOGLE_WORKSPACE_MCP_HOST_PORT`
-- `GOOGLE_WORKSPACE_MCP_PATH`
-- `API_KEY_MODE`
-
-Docker Compose note:
-
-- If a secret contains a literal `$`, escape it as `$$` in `.env`
-
-Compatibility note:
-
-- Legacy Keep managed labels using `google-workspace-fast-mcp` remain accepted for note edits
-
-## Run Locally
+## Local Run
 
 ```bash
-python scripts/run_server.py serve
-python scripts/run_server.py doctor
-python scripts/run_server.py url
+uv run python scripts/run_server.py serve
+uv run python scripts/run_server.py doctor
+uv run python scripts/run_server.py url
 ```
 
-OAuth and Keep helper scripts remain available:
+Helper flows:
 
 ```bash
 npm run google:oauth
 npm run google:keep-master-token
 ```
 
-The local helper automatically picks up repo-local `.oauth/` and `gws.json` when present.
-
-## Run With Docker Compose
+## Docker Run
 
 ```bash
 docker compose up -d --build
@@ -75,59 +49,32 @@ docker compose ps
 docker compose logs -f
 ```
 
-The included `docker-compose.yml` publishes the server on port `3002`, joins the external `reverse_proxy` network, and mounts `./.oauth` into the container so existing OAuth credentials continue to work without reauth.
+The bundled compose file is self-contained, publishes port `3002`, mounts `./.oauth` to preserve OAuth credentials, and starts without a repo-local `.env` file.
 
-If you use a service account file, add a bind mount such as:
+## Verification
 
-```yaml
-volumes:
-  - ./.oauth:/app/.oauth
-  - ./gws.json:/app/gws.json:ro
+Default contract suite:
+
+```bash
+uv run python -m unittest discover -s tests -v
 ```
 
-Then set `GOOGLE_SERVICE_ACCOUNT_FILE=/app/gws.json` in `.env`.
+Opt-in live Google validation:
 
-## Add To A Shared MCP Compose Project
-
-Use this service in a larger compose stack when you want one project containing multiple MCP servers:
-
-```yaml
-services:
-  google-workspace-mcp:
-    build:
-      context: /path/to/google-workspace-mcp
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    env_file:
-      - /path/to/google-workspace-mcp/.env
-    environment:
-      MCP_HOST: 0.0.0.0
-      MCP_PORT: "3002"
-      MCP_PATH: /mcp
-      GOOGLE_MCP_CREDENTIALS_DIR: /app/.oauth
-    volumes:
-      - /path/to/google-workspace-mcp/.oauth:/app/.oauth
-      # Optional if you use a service account file:
-      # - /path/to/google-workspace-mcp/gws.json:/app/gws.json:ro
-    ports:
-      - "3002:3002"
-    networks:
-      - reverse_proxy
-
-networks:
-  reverse_proxy:
-    external: true
+```bash
+$env:GOOGLE_WORKSPACE_MCP_RUN_LIVE_TESTS='true'
+uv run python -m unittest discover -s tests -p "test_live_*_contract.py" -v
 ```
 
-If you do not need host port publishing because you are fronting the service with another internal proxy, you can omit the `ports` section.
+Opt-in Docker smoke validation:
 
-## MCP Client Connection
+```bash
+$env:GOOGLE_WORKSPACE_MCP_RUN_DOCKER_TESTS='true'
+uv run python -m unittest tests.test_docker_contract -v
+```
 
-- URL: `http://<host>:<port>/mcp`
-- Header: `Authorization: Bearer <your-api-key>`
+## Publish Contract
 
-## Repository Notes
-
-- Tool manifests are split by Google product area for easier control
-- Health responses identify the server as `google-workspace-mcp`
-- The Docker image is intended for direct HTTP deployment without any tunnel helper
+- `uv run` is the supported local execution path.
+- Manifest files define the public interface and now contain only the verified or verified-limited surface.
+- Generated references are derived from manifests and support metadata; the family-level support matrix remains the canonical product contract.

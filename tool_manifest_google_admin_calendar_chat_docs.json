@@ -6,14 +6,32 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "time_min": { "type": "string" },
-          "time_max": { "type": "string" },
-          "items": { "type": "array", "items": { "type": "string" } },
-          "time_zone": { "type": "string" }
+          "user_google_email": {
+            "type": "string"
+          },
+          "time_min": {
+            "type": "string"
+          },
+          "time_max": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "time_zone": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "time_min", "time_max", "items"]
+        "required": [
+          "user_google_email",
+          "time_min",
+          "time_max",
+          "items"
+        ]
       }
     },
     {
@@ -22,14 +40,29 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "calendar_id": { "type": "string", "default": "primary" },
-          "page_size": { "type": "number", "default": 100 },
-          "page_token": { "type": "string" },
-          "show_deleted": { "type": "boolean", "default": false }
+          "user_google_email": {
+            "type": "string"
+          },
+          "calendar_id": {
+            "type": "string",
+            "default": "primary"
+          },
+          "page_size": {
+            "type": "number",
+            "default": 100
+          },
+          "page_token": {
+            "type": "string"
+          },
+          "show_deleted": {
+            "type": "boolean",
+            "default": false
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email"]
+        "required": [
+          "user_google_email"
+        ]
       }
     },
     {
@@ -38,21 +71,47 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "calendar_id": { "type": "string", "default": "primary" },
+          "user_google_email": {
+            "type": "string"
+          },
+          "calendar_id": {
+            "type": "string",
+            "default": "primary"
+          },
           "role": {
             "type": "string",
-            "enum": ["none", "freeBusyReader", "reader", "writer", "owner"]
+            "enum": [
+              "none",
+              "freeBusyReader",
+              "reader",
+              "writer",
+              "owner"
+            ]
           },
           "scope_type": {
             "type": "string",
-            "enum": ["default", "user", "group", "domain"]
+            "enum": [
+              "default",
+              "user",
+              "group",
+              "domain"
+            ]
           },
-          "scope_value": { "type": "string" },
-          "send_notifications": { "type": "boolean", "default": false }
+          "scope_value": {
+            "type": "string"
+          },
+          "send_notifications": {
+            "type": "boolean",
+            "default": false
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "role", "scope_type", "scope_value"]
+        "required": [
+          "user_google_email",
+          "role",
+          "scope_type",
+          "scope_value"
+        ]
       }
     },
     {
@@ -61,124 +120,22 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "calendar_id": { "type": "string", "default": "primary" },
-          "rule_id": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "rule_id"]
-      }
-    },
-    {
-      "name": "create_recurring_event",
-      "description": "Create a recurring Google Calendar event.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "summary": { "type": "string" },
-          "start_time": { "type": "string" },
-          "end_time": { "type": "string" },
-          "calendar_id": { "type": "string", "default": "primary" },
-          "description": { "type": "string" },
-          "location": { "type": "string" },
-          "attendees": { "type": "array", "items": { "type": "string" } },
-          "timezone": { "type": "string" },
-          "add_google_meet": { "type": "boolean", "default": false },
-          "reminders": { "type": "array", "items": { "type": "object" } },
-          "use_default_reminders": { "type": "boolean", "default": true },
-          "recurrence": {
-            "oneOf": [
-              { "type": "string" },
-              { "type": "array", "items": { "type": "string" } }
-            ]
+          "user_google_email": {
+            "type": "string"
           },
-          "exceptions": { "type": "array", "items": { "type": "string" } }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "summary", "start_time", "end_time", "recurrence"]
-      }
-    },
-    {
-      "name": "reply_in_thread",
-      "description": "Reply to a Google Chat thread.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "space_id": { "type": "string" },
-          "message_text": { "type": "string" },
-          "thread_name": { "type": "string" },
-          "thread_key": { "type": "string" },
-          "message_reply_option": {
+          "calendar_id": {
             "type": "string",
-            "enum": [
-              "MESSAGE_REPLY_OPTION_UNSPECIFIED",
-              "REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD",
-              "REPLY_MESSAGE_OR_FAIL"
-            ]
+            "default": "primary"
+          },
+          "rule_id": {
+            "type": "string"
           }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "space_id", "message_text"]
-      }
-    },
-    {
-      "name": "apply_doc_paragraph_style",
-      "description": "Apply a paragraph style range in a Google Doc.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "document_id": { "type": "string" },
-          "start_index": { "type": "number" },
-          "end_index": { "type": "number" },
-          "named_style_type": { "type": "string" },
-          "alignment": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "document_id", "start_index", "end_index"]
-      }
-    },
-    {
-      "name": "apply_doc_text_style",
-      "description": "Apply a text style range in a Google Doc.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "document_id": { "type": "string" },
-          "start_index": { "type": "number" },
-          "end_index": { "type": "number" },
-          "bold": { "type": "boolean" },
-          "italic": { "type": "boolean" },
-          "underline": { "type": "boolean" },
-          "strikethrough": { "type": "boolean" },
-          "link_url": { "type": "string" },
-          "font_size_pt": { "type": "number" },
-          "weighted_font_family": { "type": "string" },
-          "foreground_color": { "type": "object" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "document_id", "start_index", "end_index"]
-      }
-    },
-    {
-      "name": "export_doc",
-      "description": "Export a Google Doc as PDF, DOCX, or HTML.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "document_id": { "type": "string" },
-          "format": {
-            "type": "string",
-            "enum": ["pdf", "docx", "html"],
-            "default": "pdf"
-          }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "document_id"]
+        "required": [
+          "user_google_email",
+          "rule_id"
+        ]
       }
     }
   ]

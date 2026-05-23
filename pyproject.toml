@@ -8,6 +8,7 @@ dependencies = [
   "cryptography>=44.0.0",
   "fastmcp>=3.1.0",
   "gkeepapi>=0.16.0",
+  "gpsoauth>=2.0.0",
   "google-api-python-client>=2.170.0",
   "google-auth>=2.34.0",
   "google-auth-oauthlib>=1.2.0",
@@ -20,3 +21,21 @@ google-workspace-mcp = "server:main"
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = [
+  "auth_support",
+  "calendar_dispatch",
+  "contacts_dispatch",
+  "docs_dispatch",
+  "drive_dispatch",
+  "forms_dispatch",
+  "gmail_dispatch",
+  "keep_dispatch",
+  "manifest_support",
+  "meet_dispatch",
+  "server",
+  "sheets_dispatch",
+  "slides_dispatch",
+  "tasks_dispatch",
+]

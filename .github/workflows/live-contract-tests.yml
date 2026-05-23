@@ -1,0 +1,47 @@
+name: live-contract-tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  live-unittest:
+    runs-on: ubuntu-latest
+    environment: live-validation
+    if: ${{ secrets.GOOGLE_DEFAULT_USER_EMAIL != '' && secrets.GOOGLE_OAUTH_CREDENTIAL_JSON != '' }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sync dependencies
+        run: uv sync
+
+      - name: Prepare OAuth credential
+        shell: bash
+        run: |
+          mkdir -p .oauth
+          cat <<'EOF' > ".oauth/${GOOGLE_DEFAULT_USER_EMAIL}.json"
+          ${{ secrets.GOOGLE_OAUTH_CREDENTIAL_JSON }}
+          EOF
+        env:
+          GOOGLE_DEFAULT_USER_EMAIL: ${{ secrets.GOOGLE_DEFAULT_USER_EMAIL }}
+
+      - name: Run live contract tests
+        env:
+          GOOGLE_WORKSPACE_MCP_RUN_LIVE_TESTS: "true"
+          GOOGLE_MCP_CREDENTIALS_DIR: .oauth
+          GOOGLE_DEFAULT_USER_EMAIL: ${{ secrets.GOOGLE_DEFAULT_USER_EMAIL }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_KEEP_EMAIL: ${{ secrets.GOOGLE_KEEP_EMAIL }}
+          GOOGLE_KEEP_MASTER_TOKEN: ${{ secrets.GOOGLE_KEEP_MASTER_TOKEN }}
+          GOOGLE_KEEP_UNSAFE_MODE: ${{ secrets.GOOGLE_KEEP_UNSAFE_MODE }}
+          GOOGLE_KEEP_MANAGED_LABEL: ${{ secrets.GOOGLE_KEEP_MANAGED_LABEL }}
+        run: uv run python -m unittest discover -s tests -p "test_live_*_contract.py" -v

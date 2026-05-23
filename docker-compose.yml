@@ -5,13 +5,24 @@ services:
       dockerfile: Dockerfile
     container_name: google-workspace-mcp
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       MCP_HOST: 0.0.0.0
       MCP_PORT: "${GOOGLE_WORKSPACE_MCP_PORT:-3002}"
       MCP_PATH: "${GOOGLE_WORKSPACE_MCP_PATH:-/mcp}"
       GOOGLE_MCP_CREDENTIALS_DIR: /app/.oauth
+      GOOGLE_WORKSPACE_MCP_API_KEY: "${GOOGLE_WORKSPACE_MCP_API_KEY:-}"
+      MCP_API_KEY: "${MCP_API_KEY:-}"
+      MCP_API_KEYS: "${MCP_API_KEYS:-}"
+      API_KEY_MODE: "${API_KEY_MODE:-}"
+      GOOGLE_DEFAULT_USER_EMAIL: "${GOOGLE_DEFAULT_USER_EMAIL:-}"
+      GOOGLE_API_KEY: "${GOOGLE_API_KEY:-}"
+      GOOGLE_KEEP_EMAIL: "${GOOGLE_KEEP_EMAIL:-}"
+      GOOGLE_KEEP_MASTER_TOKEN: "${GOOGLE_KEEP_MASTER_TOKEN:-}"
+      GOOGLE_KEEP_MANAGED_LABEL: "${GOOGLE_KEEP_MANAGED_LABEL:-google-workspace-mcp}"
+      GOOGLE_KEEP_UNSAFE_MODE: "${GOOGLE_KEEP_UNSAFE_MODE:-false}"
+      GOOGLE_OAUTH_CLIENT_ID: "${GOOGLE_OAUTH_CLIENT_ID:-}"
+      GOOGLE_OAUTH_CLIENT_SECRET: "${GOOGLE_OAUTH_CLIENT_SECRET:-}"
+      MASTER_KEY: "${MASTER_KEY:-}"
     volumes:
       - ./.oauth:/app/.oauth
     ports:
@@ -22,8 +33,3 @@ services:
       timeout: 5s
       retries: 20
       start_period: 45s
-
-networks:
-  default:
-    name: reverse_proxy
-    external: true

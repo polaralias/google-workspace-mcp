@@ -548,6 +548,7 @@ dependencies = [
     { name = "google-api-python-client" },
     { name = "google-auth" },
     { name = "google-auth-oauthlib" },
+    { name = "gpsoauth" },
     { name = "requests" },
 ]
 
@@ -559,6 +560,7 @@ requires-dist = [
     { name = "google-api-python-client", specifier = ">=2.170.0" },
     { name = "google-auth", specifier = ">=2.34.0" },
     { name = "google-auth-oauthlib", specifier = ">=1.2.0" },
+    { name = "gpsoauth", specifier = ">=2.0.0" },
     { name = "requests", specifier = ">=2.32.0" },
 ]
 

@@ -16,7 +16,6 @@ DEFAULT_PORT = 3002
 DEFAULT_PATH = "/mcp"
 DEFAULT_HEALTH_PATH = "/health"
 DEFAULT_TRANSPORT = "streamable-http"
-LOCAL_SERVICE_ACCOUNT_PATH = REPO_ROOT / "gws.json"
 LOCAL_OAUTH_DIR = REPO_ROOT / ".oauth"
 
 
@@ -90,9 +89,6 @@ def load_env_files() -> None:
 
     if os.getenv("APIKEY") and not os.getenv("GOOGLE_API_KEY"):
         os.environ["GOOGLE_API_KEY"] = os.environ["APIKEY"]
-
-    if LOCAL_SERVICE_ACCOUNT_PATH.exists():
-        os.environ.setdefault("GOOGLE_SERVICE_ACCOUNT_FILE", str(LOCAL_SERVICE_ACCOUNT_PATH))
 
     if LOCAL_OAUTH_DIR.exists():
         os.environ.setdefault("GOOGLE_MCP_CREDENTIALS_DIR", str(LOCAL_OAUTH_DIR))
@@ -224,7 +220,6 @@ def cmd_doctor(config: RuntimeConfig, _args: argparse.Namespace) -> int:
     print(f"health_url={config.health_url}")
     print(f"transport={config.transport}")
     print(f"google_credentials_dir={os.getenv('GOOGLE_MCP_CREDENTIALS_DIR', '')}")
-    print(f"service_account_file={os.getenv('GOOGLE_SERVICE_ACCOUNT_FILE', '')}")
     print(f"health={'online' if is_server_healthy(config) else 'offline'}")
     return 0
 

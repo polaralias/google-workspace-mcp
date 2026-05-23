@@ -1,135 +1,24 @@
 {
   "tools": [
     {
-      "name": "list_keep_notes",
-      "description": "List Google Keep notes.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "filter": { "type": "string" },
-          "page_size": { "type": "number", "default": 25 },
-          "page_token": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email"]
-      }
-    },
-    {
-      "name": "get_keep_note",
-      "description": "Get a Google Keep note.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "note_name": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "note_name"]
-      }
-    },
-    {
-      "name": "create_keep_note",
-      "description": "Create a Google Keep note.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "title": { "type": "string" },
-          "text": { "type": "string" },
-          "list_items": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "text": { "type": "string" },
-                "checked": { "type": "boolean" }
-              }
-            }
-          }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "title"]
-      }
-    },
-    {
-      "name": "delete_keep_note",
-      "description": "Delete a Google Keep note.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "note_name": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "note_name"]
-      }
-    },
-    {
-      "name": "download_keep_attachment",
-      "description": "Download a Google Keep attachment.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "attachment_name": { "type": "string" },
-          "mime_type": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "attachment_name", "mime_type"]
-      }
-    },
-    {
-      "name": "share_keep_note",
-      "description": "Share a Google Keep note with writers.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "note_name": { "type": "string" },
-          "writers": { "type": "array", "items": { "type": "string" } }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "note_name", "writers"]
-      }
-    },
-    {
-      "name": "unshare_keep_note",
-      "description": "Remove sharing from a Google Keep note.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "note_name": { "type": "string" },
-          "emails_or_groups": { "type": "array", "items": { "type": "string" } }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "note_name", "emails_or_groups"]
-      }
-    },
-    {
-      "name": "get_keep_note_permissions",
-      "description": "List permissions on a Google Keep note.",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "user_google_email": { "type": "string" },
-          "note_name": { "type": "string" }
-        },
-        "additionalProperties": false,
-        "required": ["user_google_email", "note_name"]
-      }
-    },
-    {
       "name": "list_contacts",
       "description": "List Google contacts.",
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "person_fields": { "type": "string" },
-          "page_size": { "type": "number", "default": 100 },
-          "page_token": { "type": "string" },
+          "user_google_email": {
+            "type": "string"
+          },
+          "person_fields": {
+            "type": "string"
+          },
+          "page_size": {
+            "type": "number",
+            "default": 100
+          },
+          "page_token": {
+            "type": "string"
+          },
           "sort_order": {
             "type": "string",
             "enum": [
@@ -139,10 +28,14 @@
               "LAST_NAME_ASCENDING"
             ]
           },
-          "sync_token": { "type": "string" }
+          "sync_token": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email"]
+        "required": [
+          "user_google_email"
+        ]
       }
     },
     {
@@ -151,10 +44,19 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "query": { "type": "string" },
-          "page_size": { "type": "number", "default": 10 },
-          "read_mask": { "type": "string" },
+          "user_google_email": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "page_size": {
+            "type": "number",
+            "default": 10
+          },
+          "read_mask": {
+            "type": "string"
+          },
           "sources": {
             "type": "array",
             "items": {
@@ -170,7 +72,10 @@
           }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "query"]
+        "required": [
+          "user_google_email",
+          "query"
+        ]
       }
     },
     {
@@ -179,12 +84,21 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "person": { "type": "object" },
-          "person_fields": { "type": "string" }
+          "user_google_email": {
+            "type": "string"
+          },
+          "person": {
+            "type": "object"
+          },
+          "person_fields": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "person"]
+        "required": [
+          "user_google_email",
+          "person"
+        ]
       }
     },
     {
@@ -193,14 +107,28 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "resource_name": { "type": "string" },
-          "person": { "type": "object" },
-          "update_person_fields": { "type": "string" },
-          "person_fields": { "type": "string" }
+          "user_google_email": {
+            "type": "string"
+          },
+          "resource_name": {
+            "type": "string"
+          },
+          "person": {
+            "type": "object"
+          },
+          "update_person_fields": {
+            "type": "string"
+          },
+          "person_fields": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "resource_name", "person"]
+        "required": [
+          "user_google_email",
+          "resource_name",
+          "person"
+        ]
       }
     },
     {
@@ -209,11 +137,18 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "resource_name": { "type": "string" }
+          "user_google_email": {
+            "type": "string"
+          },
+          "resource_name": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "resource_name"]
+        "required": [
+          "user_google_email",
+          "resource_name"
+        ]
       }
     },
     {
@@ -222,14 +157,32 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "form_id": { "type": "string" },
-          "requests": { "type": "array", "items": { "type": "object" } },
-          "include_form_in_response": { "type": "boolean", "default": false },
-          "write_control": { "type": "object" }
+          "user_google_email": {
+            "type": "string"
+          },
+          "form_id": {
+            "type": "string"
+          },
+          "requests": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "include_form_in_response": {
+            "type": "boolean",
+            "default": false
+          },
+          "write_control": {
+            "type": "object"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "form_id", "requests"]
+        "required": [
+          "user_google_email",
+          "form_id",
+          "requests"
+        ]
       }
     },
     {
@@ -238,13 +191,24 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "page_size": { "type": "number", "default": 25 },
-          "page_token": { "type": "string" },
-          "filter": { "type": "string" }
+          "user_google_email": {
+            "type": "string"
+          },
+          "page_size": {
+            "type": "number",
+            "default": 25
+          },
+          "page_token": {
+            "type": "string"
+          },
+          "filter": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email"]
+        "required": [
+          "user_google_email"
+        ]
       }
     },
     {
@@ -253,11 +217,18 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "user_google_email": { "type": "string" },
-          "name": { "type": "string" }
+          "user_google_email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["user_google_email", "name"]
+        "required": [
+          "user_google_email",
+          "name"
+        ]
       }
     }
   ]

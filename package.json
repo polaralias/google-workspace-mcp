@@ -9,8 +9,8 @@
     "docker:up": "docker compose up -d --build --remove-orphans",
     "google:keep-master-token": "uv run -- python scripts/google_keep_master_token.py",
     "google:oauth": "uv run -- python scripts/google_oauth_helper.py",
-    "mcp:doctor": "python scripts/run_server.py doctor",
-    "mcp:serve": "python scripts/run_server.py serve",
-    "mcp:url": "python scripts/run_server.py url"
+    "mcp:doctor": "uv run -- python scripts/run_server.py doctor",
+    "mcp:serve": "uv run -- python scripts/run_server.py serve",
+    "mcp:url": "uv run -- python scripts/run_server.py url"
   }
 }
