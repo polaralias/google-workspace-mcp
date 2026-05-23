@@ -21,6 +21,7 @@ This repository is a Google Workspace MCP server. The product is the integration
 
 ## First references to read
 
+- [GLOSSARY.md](GLOSSARY.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [docs/product-specs/product-platform-end-state.md](docs\product-specs\product-platform-end-state.md)
 - [docs/product-specs/support-matrix.md](docs\product-specs\support-matrix.md)

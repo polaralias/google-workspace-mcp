@@ -11,6 +11,7 @@ The public server surface is intentionally limited to the 53 tools that have cur
 
 ## Primary Docs
 
+- [Glossary](GLOSSARY.md)
 - [Configuration reference](docs/configuration.md)
 - [Verified support matrix](docs/product-specs/support-matrix.md)
 - [Per-tool support matrix](docs/generated/tool-support-matrix.md)
