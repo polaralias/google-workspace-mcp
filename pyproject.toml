@@ -1,6 +1,6 @@
 [project]
 name = "google-workspace-mcp"
-version = "0.0.1"
+version = "1.0.0"
 description = "Native MCP server for Google Workspace"
 readme = "README.md"
 requires-python = ">=3.11"
