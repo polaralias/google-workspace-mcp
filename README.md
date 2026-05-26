@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Google%20Workspace%20MCP.png" alt="Google Workspace MCP banner" width="960" />
+</p>
+
 # Google Workspace MCP
 
 Google Workspace MCP is a standalone FastMCP server for Google Workspace workflows, with optional Google Keep support through the documented master-token path.
