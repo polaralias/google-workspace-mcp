@@ -22,7 +22,7 @@ Supported Google auth sources:
 | --- | --- | --- | --- |
 | `MCP_API_KEY` | No | none | Generic single-key alias if you prefer a shared naming pattern across services. |
 | `MCP_API_KEYS` | No | none | Comma-separated additional bearer tokens accepted by the MCP endpoint. |
-| `API_KEY_MODE` | No | static auth enabled | Set to `disabled` to turn off bearer-token checks entirely. |
+| `API_KEY_MODE` | No | `required` | Defaults to bearer-token auth. Set to `disabled` only for intentional no-auth deployments. |
 
 ## OAuth and credentials
 
@@ -61,6 +61,7 @@ Supported Google auth sources:
 - OAuth is the primary path for Calendar, Drive, Docs, Sheets, Slides, Gmail, Tasks, Contacts, Forms, and Meet.
 - Google Keep support is master-token-only. There is no supported OAuth-backed Keep story.
 - API-key-only setups are intentionally narrow and should be limited to the documented public-read subset.
+- Missing MCP API keys now fail startup unless `API_KEY_MODE=disabled` is set explicitly.
 
 ## Files and deployment notes
 

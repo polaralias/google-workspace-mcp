@@ -1,6 +1,9 @@
+import importlib
+import os
 import unittest
 from unittest.mock import patch
 from pathlib import Path
+import sys
 
 from fastmcp.tools import FunctionTool
 
@@ -60,6 +63,7 @@ class AuthContractTests(unittest.IsolatedAsyncioTestCase):
         with patch.dict("os.environ", {"GOOGLE_API_KEY": "public-key"}, clear=True):
             payload = server._health_payload(_FakeCredentialStore(), _FakeKeepBackend(configured=False))
 
+        self.assertEqual(payload["mcpAuthMode"], "bearer-token")
         self.assertEqual(payload["googleAuthSources"], ["google_api_key", "oauth_credentials_dir"])
         self.assertNotIn("serviceAccountConfigured", payload)
         self.assertNotIn("defaultImpersonatedUser", payload)
@@ -90,3 +94,14 @@ class AuthContractTests(unittest.IsolatedAsyncioTestCase):
         description = tool.parameters["properties"]["user_google_email"]["description"]
         self.assertNotIn("service-account", description)
         self.assertNotIn("GOOGLE_IMPERSONATED_USER", description)
+
+    async def test_server_import_requires_explicit_api_key_or_disabled_mode(self):
+        with patch.dict(os.environ, {}, clear=True):
+            sys.modules.pop("server", None)
+            with self.assertRaises(RuntimeError) as exc:
+                importlib.import_module("server")
+
+        message = str(exc.exception)
+        self.assertIn("GOOGLE_WORKSPACE_MCP_API_KEY", message)
+        self.assertIn("API_KEY_MODE=disabled", message)
+        sys.modules["server"] = server

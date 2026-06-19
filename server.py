@@ -10,7 +10,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-from auth_support import CredentialStore, StaticApiKeyVerifier, _load_api_keys, _runtime_env
+from auth_support import (
+    CredentialStore,
+    StaticApiKeyVerifier,
+    _auth_is_disabled,
+    _health_auth_mode,
+    _load_api_keys,
+    _require_api_keys_configured,
+    _runtime_env,
+)
 from calendar_dispatch import CALENDAR_TOOL_NAMES, dispatch_calendar as _dispatch_calendar_impl
 from contacts_dispatch import CONTACTS_TOOL_NAMES, dispatch_contacts as _dispatch_contacts_impl
 from docs_dispatch import DOCS_TOOL_NAMES, dispatch_docs as _dispatch_docs_impl
@@ -699,7 +707,7 @@ def _health_payload(
         "status": "ok",
         "server": "google-workspace-mcp",
         "credentialsDir": str(credential_store.base_dir),
-        "mcpAuthMode": _runtime_env("API_KEY_MODE", default="static-or-disabled") or "static-or-disabled",
+        "mcpAuthMode": _health_auth_mode(api_keys),
         "googleAuthSources": auth_sources,
         "googleApiKeyConfigured": bool(_runtime_env("GOOGLE_API_KEY")),
         "defaultUserEmail": _runtime_env("GOOGLE_DEFAULT_USER_EMAIL") or None,
@@ -715,7 +723,8 @@ credential_store = CredentialStore()
 runtime = GoogleRuntime(credential_store)
 
 api_keys = _load_api_keys()
-auth = StaticApiKeyVerifier(api_keys=api_keys, base_url=_runtime_env("BASE_URL")) if api_keys else None
+_require_api_keys_configured(api_keys, "GOOGLE_WORKSPACE_MCP_API_KEY")
+auth = None if _auth_is_disabled() else StaticApiKeyVerifier(api_keys=api_keys, base_url=_runtime_env("BASE_URL"))
 server = FastMCP("google-workspace-mcp", auth=auth)
 mcp = server
 _register_tools(server, runtime, manifest)

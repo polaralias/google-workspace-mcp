@@ -29,6 +29,7 @@ The server exposes a verified subset of Google Workspace and Keep operations thr
 - stored OAuth credentials in `.oauth/` or `GOOGLE_MCP_CREDENTIALS_DIR`
 - `GOOGLE_API_KEY` for the supported public-read subset
 - `GOOGLE_KEEP_EMAIL` plus `GOOGLE_KEEP_MASTER_TOKEN` for Keep-only flows
+- MCP auth defaults to required; set `API_KEY_MODE=disabled` only for intentional no-auth use.
 
 ## Quick Start
 

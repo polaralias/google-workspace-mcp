@@ -16,6 +16,7 @@ from google.oauth2.credentials import Credentials
 
 
 RUNTIME_PLACEHOLDER_RE = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
+VALID_API_KEY_MODES = {"required", "disabled"}
 
 
 def _runtime_env(*names: str, default: str = "") -> str:
@@ -42,9 +43,19 @@ class StaticApiKeyVerifier(TokenVerifier):
         return None
 
 
+def _auth_mode() -> str:
+    mode = _runtime_env("API_KEY_MODE", default="required").strip().lower() or "required"
+    if mode not in VALID_API_KEY_MODES:
+        raise RuntimeError("Unsupported API_KEY_MODE value. Use 'required' or 'disabled'.")
+    return mode
+
+
+def _auth_is_disabled() -> bool:
+    return _auth_mode() == "disabled"
+
+
 def _load_api_keys() -> list[str]:
-    api_key_mode = _runtime_env("API_KEY_MODE", default="").strip().lower()
-    if api_key_mode == "disabled":
+    if _auth_is_disabled():
         return []
     keys: list[str] = []
     for key in (_runtime_env("GOOGLE_WORKSPACE_MCP_API_KEY"), _runtime_env("MCP_API_KEY")):
@@ -54,6 +65,25 @@ def _load_api_keys() -> list[str]:
     if multi:
         keys.extend([x.strip() for x in multi.split(",") if x.strip()])
     return list(dict.fromkeys(keys))
+
+
+def _require_api_keys_configured(api_keys: list[str], *service_env_names: str) -> None:
+    if api_keys or _auth_is_disabled():
+        return
+    configured_names = [*service_env_names, "MCP_API_KEY", "MCP_API_KEYS"]
+    raise RuntimeError(
+        "MCP auth defaults to required. Configure "
+        + ", ".join(configured_names)
+        + ", or set API_KEY_MODE=disabled for intentional no-auth mode."
+    )
+
+
+def _health_auth_mode(api_keys: list[str]) -> str:
+    if _auth_is_disabled():
+        return "disabled"
+    if api_keys:
+        return "bearer-token"
+    return "unconfigured"
 
 
 def _derive_key(master_key: str) -> bytes:
