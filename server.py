@@ -725,7 +725,7 @@ runtime = GoogleRuntime(credential_store)
 api_keys = _load_api_keys()
 _require_api_keys_configured(api_keys, "GOOGLE_WORKSPACE_MCP_API_KEY")
 auth = None if _auth_is_disabled() else StaticApiKeyVerifier(api_keys=api_keys, base_url=_runtime_env("BASE_URL"))
-server = FastMCP("google-workspace-mcp", auth=auth)
+server = FastMCP("Google Workspace", auth=auth)
 mcp = server
 _register_tools(server, runtime, manifest)
 
