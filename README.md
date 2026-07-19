@@ -16,7 +16,7 @@ The server exposes a verified subset of Google Workspace and Keep operations thr
 - OAuth-based access for the main Google Workspace flows
 - limited API-key public-read compatibility path
 - Google Keep access through the documented master-token workflow
-- MCP and health endpoints for local or containerized runtime
+- MCP and health endpoints for local or containerised runtime
 
 ## Endpoints
 
@@ -69,4 +69,4 @@ Start with:
 - [docs/tool-reference.md](docs/tool-reference.md)
 - [docs/product-specs/support-matrix.md](docs/product-specs/support-matrix.md)
 
-For repository workflow and agent-focused context, read [AGENTS.md](AGENTS.md).
+For repository workflow and agent-focussed context, read [AGENTS.md](AGENTS.md).

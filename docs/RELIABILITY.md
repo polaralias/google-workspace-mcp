@@ -19,8 +19,8 @@ Non-live contract coverage protects:
 
 - auth and health surfaces
 - manifest and runtime inventory alignment
-- generated support artifacts
-- repaired Drive file create/content behavior
+- generated support artefacts
+- repaired Drive file create/content behaviour
 - Keep delete semantics
 - Docker assumptions and container health
 

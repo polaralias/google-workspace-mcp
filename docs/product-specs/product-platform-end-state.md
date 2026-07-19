@@ -48,7 +48,7 @@ The current public surface contains only `verified working` and `verified limite
 
 ## Readiness Rule
 
-The repository is publish-ready when a fresh contributor can answer these questions from tracked artifacts:
+The repository is publish-ready when a fresh contributor can answer these questions from tracked artefacts:
 
 - What is the supported runtime path?
 - Which auth modes are first-class?

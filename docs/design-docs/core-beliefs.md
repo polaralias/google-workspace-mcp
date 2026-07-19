@@ -10,7 +10,7 @@ Stored OAuth is the primary supported Workspace auth story. API key and Keep mas
 
 ## Belief 3: Validation before refactor
 
-The codebase should be stabilized through support evidence and regression protection before major structural rewrites.
+The codebase should be stabilised through support evidence and regression protection before major structural rewrites.
 
 ## Belief 4: Small repo, high consequence
 
