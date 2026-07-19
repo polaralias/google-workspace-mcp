@@ -1,6 +1,6 @@
 # Validation Report - 2026-05-16
 
-Historical artifact note:
+Historical artefact note:
 
 - This report captures the live validation state from 2026-05-16.
 - Some issues described here have since been repaired, narrowed, or removed from the supported product contract.
@@ -17,7 +17,7 @@ This report covers live validation performed against real Google services on 202
 Validation policy used:
 
 - perform read actions before write actions
-- only perform harmful write actions on artifacts created during validation
+- only perform harmful write actions on artefacts created during validation
 
 ## Environment findings
 
@@ -72,7 +72,7 @@ This established the actual public-read boundary of the current implementation.
 - `get_presentation` on a public Slides presentation
 - `search_drive_files` did not function as a useful public-search path in this validation
 
-#### Verified incorrect behavior in API-key-only mode
+#### Verified incorrect behaviour in API-key-only mode
 
 - `get_drive_file_content` on a public plain text file returned file metadata rendered as a string instead of the actual file content bytes
 
@@ -195,13 +195,13 @@ Partially verified:
 - `search_contacts` executed successfully
 - it did not immediately return the contact created earlier in the same validation flow
 
-This may be eventual consistency or search behavior rather than a hard failure, but it should not be treated as proven for immediate read-after-write use.
+This may be eventual consistency or search behaviour rather than a hard failure, but it should not be treated as proven for immediate read-after-write use.
 
 ## Concrete bugs and defects found
 
 ### 1. `create_drive_file` is broken
 
-Observed behavior:
+Observed behaviour:
 
 - calling `create_drive_file` with string `content` raised `googleapiclient.errors.UnknownFileType`
 
@@ -216,7 +216,7 @@ Impact:
 
 ### 1a. `get_drive_file_content` is incorrect for API-key public file reads
 
-Observed behavior:
+Observed behaviour:
 
 - when pointed at a public plain text file in API-key-only mode, the wrapper returned a stringified metadata object rather than the file contents
 
@@ -227,7 +227,7 @@ Impact:
 
 ### 2. Keep delete response is misleading
 
-Observed behavior:
+Observed behaviour:
 
 - `delete_keep_note` returned `updated: true`
 - returned note payload still appeared untrashed/unmodified
@@ -235,11 +235,11 @@ Observed behavior:
 
 Impact:
 
-- actual delete behavior may work, but callers should not trust the returned note state
+- actual delete behaviour may work, but callers should not trust the returned note state
 
 ### 3. Runtime portability depends on managed environment
 
-Observed behavior:
+Observed behaviour:
 
 - direct host interpreter execution failed on missing dependency
 - `uv run` worked
@@ -265,7 +265,7 @@ Impact:
 
 - Drive file creation wrapper
 - Keep delete return payload fidelity
-- Contacts search immediate read-after-write behavior
+- Contacts search immediate read-after-write behaviour
 - API-key-only fallback path for most Workspace surfaces
 
 ## Recommended next validation passes
@@ -286,7 +286,7 @@ Impact:
 
 3. Fix `create_drive_file` before claiming Drive file create/write support publicly.
 
-4. Add regression tests around the live wrapper behavior that was proven here, especially:
+4. Add regression tests around the live wrapper behaviour that was proven here, especially:
    - credential loading
    - Calendar create/get/delete
    - Tasks lifecycle

@@ -10,7 +10,7 @@ Runtime flow:
 2. `manifest_support.load_manifest(...)` merges those manifests.
 3. `server.py` registers one FastMCP tool per manifest entry.
 4. Every call routes through `GoogleRuntime.dispatch(...)`.
-5. Domain dispatchers execute Google Workspace or Keep-specific behavior.
+5. Domain dispatchers execute Google Workspace or Keep-specific behaviour.
 
 ## Main Components
 

@@ -5,7 +5,7 @@
 - secrets stay out of version control
 - auth modes stay explicitly separated
 - public-read access is not conflated with user-scoped OAuth access
-- destructive validation targets only harness-owned artifacts
+- destructive validation targets only harness-owned artefacts
 
 ## Current Security Contract
 
@@ -22,6 +22,6 @@
 
 ## Validation Rules
 
-- live tests create and clean up their own Workspace artifacts
+- live tests create and clean up their own Workspace artefacts
 - Docker validation is health-only by default
 - support claims must stay aligned with the support matrix and per-tool matrix
