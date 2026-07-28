@@ -1,3 +1,18 @@
+---
+type: "Architecture Concept"
+title: "Architecture"
+description: "Documents Architecture for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - architecture-concept
+navigation:
+  role: foundational
+  order: 20
+---
 # Architecture
 
 ## System Shape
@@ -10,7 +25,7 @@ Runtime flow:
 2. `manifest_support.load_manifest(...)` merges those manifests.
 3. `server.py` registers one FastMCP tool per manifest entry.
 4. Every call routes through `GoogleRuntime.dispatch(...)`.
-5. Domain dispatchers execute Google Workspace or Keep-specific behavior.
+5. Domain dispatchers execute Google Workspace or Keep-specific behaviour.
 
 ## Main Components
 
@@ -76,3 +91,7 @@ There are two auth layers:
 - [docs/generated/tool-support-matrix.md](docs/generated/tool-support-matrix.md)
 - [docs/product-specs/auth-models.md](docs/product-specs/auth-models.md)
 - [docs/RELIABILITY.md](docs/RELIABILITY.md)
+
+## Repository knowledge
+
+- [Documentation map](docs/knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

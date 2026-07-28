@@ -1,3 +1,18 @@
+---
+type: "Repository Guide"
+title: "Google Workspace MCP"
+description: "Documents Google Workspace MCP for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - repository-guide
+navigation:
+  role: entry-point
+  order: 10
+---
 <p align="center">
   <img src="Google%20Workspace%20MCP.png" alt="Google Workspace MCP banner" width="960" />
 </p>
@@ -16,7 +31,7 @@ The server exposes a verified subset of Google Workspace and Keep operations thr
 - OAuth-based access for the main Google Workspace flows
 - limited API-key public-read compatibility path
 - Google Keep access through the documented master-token workflow
-- MCP and health endpoints for local or containerized runtime
+- MCP and health endpoints for local or containerised runtime
 
 ## Endpoints
 
@@ -69,4 +84,8 @@ Start with:
 - [docs/tool-reference.md](docs/tool-reference.md)
 - [docs/product-specs/support-matrix.md](docs/product-specs/support-matrix.md)
 
-For repository workflow and agent-focused context, read [AGENTS.md](AGENTS.md).
+For repository workflow and agent-focussed context, read [AGENTS.md](AGENTS.md).
+
+## Repository knowledge
+
+- [Documentation map](docs/knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

@@ -1,3 +1,18 @@
+---
+type: "Delivery Plan"
+title: "Tech Debt Tracker"
+description: "Documents Tech Debt Tracker for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - delivery-plan
+navigation:
+  role: supporting
+  order: 100
+---
 # Tech Debt Tracker
 
 There are no open publish blockers in the current product contract.
@@ -12,3 +27,7 @@ There are no open publish blockers in the current product contract.
 ## Rule For Future Changes
 
 If a removed capability is brought back into the manifests, it must land with support-matrix evidence and contract coverage in the same slice.
+
+## Repository knowledge
+
+- [Documentation map](../knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

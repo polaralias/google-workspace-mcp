@@ -1,4 +1,4 @@
-# Generated Artifacts
+# Generated Artefacts
 
 Generated files in this directory are derived from the public manifests and curated support metadata.
 
@@ -8,6 +8,6 @@ They are useful for:
 - manifest-derived inventories
 - regression checks against documentation drift
 
-Current generated artifacts:
+Current generated artefacts:
 
 - [tool-support-matrix.md](tool-support-matrix.md)

@@ -1,3 +1,18 @@
+---
+type: "Glossary Concept"
+title: "Glossary"
+description: "Documents Glossary for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - glossary-concept
+navigation:
+  role: foundational
+  order: 20
+---
 # Glossary
 
 This glossary defines the product-language for the verified public contract of `google-workspace-mcp`.
@@ -35,7 +50,7 @@ A support label meaning the documented success path is validated to the reposito
 _Avoid_: Probably fine, declared only
 
 **Verified Limited**:
-A support label meaning the tool or family is intentionally supported only within a narrow documented boundary that must not be generalized.
+A support label meaning the tool or family is intentionally supported only within a narrow documented boundary that must not be generalised.
 _Avoid_: Mostly supported, unofficially broader
 
 **Auth Story**:
@@ -59,7 +74,7 @@ The only supported auth story for Google Keep in this repository, based on `GOOG
 _Avoid_: OAuth Keep support, interchangeable Google auth
 
 **Manifest Presence**:
-The fact that a tool is declared in a public manifest and therefore part of the interface surface, but not proof of behavior by itself.
+The fact that a tool is declared in a public manifest and therefore part of the interface surface, but not proof of behaviour by itself.
 _Avoid_: Validation, support evidence
 
 **Internal Runtime Code**:
@@ -67,7 +82,7 @@ Non-public implementation code that may still exist in the server but does not w
 _Avoid_: Supported tool surface
 
 **Opt-In Live Validation**:
-Integration coverage that is intentionally gated behind environment setup and is used to prove live external behavior without becoming the default local test path.
+Integration coverage that is intentionally gated behind environment setup and is used to prove live external behaviour without becoming the default local test path.
 _Avoid_: Always-on baseline tests
 
 ## Relationships
@@ -100,4 +115,8 @@ _Avoid_: Always-on baseline tests
 - Google Keep auth could be conflated with Workspace OAuth — resolved: **Keep Master Token** is a distinct auth story with its own boundary
 - internal code presence could be mistaken for public commitment — resolved: **Internal Runtime Code** does not widen the **Publish Contract**
 - live test coverage could be mistaken for the default local harness — resolved: **Opt-In Live Validation** is gated proof, not the baseline path
-- family-level support and tool-level support could blur together — resolved: **Product Family** is the contract center, with tool-level expansion kept subordinate
+- family-level support and tool-level support could blur together — resolved: **Product Family** is the contract centre, with tool-level expansion kept subordinate
+
+## Repository knowledge
+
+- [Documentation map](docs/knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

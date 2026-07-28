@@ -1,3 +1,18 @@
+---
+type: "Reference"
+title: "Configuration Reference"
+description: "Documents Configuration Reference for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - reference
+navigation:
+  role: reference
+  order: 200
+---
 # Configuration Reference
 
 This guide describes the supported runtime and deployment settings for `google-workspace-mcp`.
@@ -74,3 +89,7 @@ Supported Google auth sources:
 - Default non-live suite: `uv run python -m unittest`
 - Opt-in live suite: set `GOOGLE_WORKSPACE_MCP_RUN_LIVE_TESTS=true`, then run `uv run python -m unittest discover tests -p "test_live_*_contract.py"`
 - Opt-in Docker smoke: set `GOOGLE_WORKSPACE_MCP_RUN_DOCKER_TESTS=true`, then run `uv run python -m unittest tests.test_docker_contract`
+
+## Repository knowledge
+
+- [Documentation map](knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

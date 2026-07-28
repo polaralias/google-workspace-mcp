@@ -1,3 +1,18 @@
+---
+type: "Product Contract"
+title: "Verified Support Matrix"
+description: "Documents Verified Support Matrix for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - product-contract
+navigation:
+  role: foundational
+  order: 20
+---
 # Verified Support Matrix
 
 This document is the canonical product contract for `google-workspace-mcp`.
@@ -28,7 +43,7 @@ The current public contract uses only `verified working` and `verified limited`.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Server startup and health | manifest registration, health routes, supported auth reporting | none plus MCP bearer auth when enabled | `verified working` | [tests/test_smoke_contract.py](tests\test_smoke_contract.py), [tests/test_auth_contract.py](tests\test_auth_contract.py), [tests/test_run_server_contract.py](tests\test_run_server_contract.py), [tests/test_docker_contract.py](tests\test_docker_contract.py) | 2026-05-23 | automated | Verified locally through `uv run` and Docker Compose health smoke. |
 | OAuth credential loading | stored credential load and refresh path | OAuth | `verified working` | [tests/test_auth_contract.py](tests\test_auth_contract.py), [tests/test_credential_store_contract.py](tests\test_credential_store_contract.py) | 2026-05-23 | automated | This is the primary Google Workspace auth story. |
-| Calendar | `list_calendars`, `get_events`, `create_event`, `delete_event` | OAuth | `verified working` | [tests/test_live_calendar_contract.py](tests\test_live_calendar_contract.py) | 2026-05-23 | automated | Owned-artifact lifecycle revalidated in the current workspace. |
+| Calendar | `list_calendars`, `get_events`, `create_event`, `delete_event` | OAuth | `verified working` | [tests/test_live_calendar_contract.py](tests\test_live_calendar_contract.py) | 2026-05-23 | automated | Owned-artefact lifecycle revalidated in the current workspace. |
 | Calendar free/busy and ACL | `get_free_busy`, `list_calendar_acl`, `create_calendar_acl_rule`, `delete_calendar_acl_rule` | OAuth | `verified working` | [tests/test_live_calendar_acl_contract.py](tests\test_live_calendar_acl_contract.py) | 2026-05-23 | automated | Validated on a disposable calendar created by the live harness. |
 | Tasks | `list_task_lists`, `create_task_list`, `delete_task_list`, `list_tasks`, `create_task`, `update_task`, `delete_task` | OAuth | `verified working` | [tests/test_live_tasks_contract.py](tests\test_live_tasks_contract.py) | 2026-05-23 | automated | Owned task-list and task cleanup is enforced by the live harness. |
 | Drive | `search_drive_files`, `list_drive_items`, `create_drive_folder`, `create_drive_file`, `get_drive_file_content`, `delete_drive_file` | OAuth | `verified working` | [tests/test_drive_contract.py](tests\test_drive_contract.py), [tests/test_live_drive_contract.py](tests\test_live_drive_contract.py) | 2026-05-23 | automated | Includes regression coverage for file create and plain-file content reads. |
@@ -50,9 +65,13 @@ The current public contract uses only `verified working` and `verified limited`.
 
 - Manifest presence is public interface, not proof by itself.
 - Public manifests now exclude previously unverified wrappers.
-- `verified limited` means the boundary is intentionally narrow and must not be generalized.
+- `verified limited` means the boundary is intentionally narrow and must not be generalised.
 - Historical evidence remains in dated reports; current support claims belong here first.
 
 ## Excluded Capability Rule
 
 If a tool is not listed in the public manifests or the per-tool matrix, it is not part of the supported product contract even if an internal dispatcher still contains code for it.
+
+## Repository knowledge
+
+- [Documentation map](../knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.
