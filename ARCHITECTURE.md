@@ -1,3 +1,18 @@
+---
+type: "Architecture Concept"
+title: "Architecture"
+description: "Documents Architecture for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - architecture-concept
+navigation:
+  role: foundational
+  order: 20
+---
 # Architecture
 
 ## System Shape
@@ -76,3 +91,7 @@ There are two auth layers:
 - [docs/generated/tool-support-matrix.md](docs/generated/tool-support-matrix.md)
 - [docs/product-specs/auth-models.md](docs/product-specs/auth-models.md)
 - [docs/RELIABILITY.md](docs/RELIABILITY.md)
+
+## Repository knowledge
+
+- [Documentation map](docs/knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

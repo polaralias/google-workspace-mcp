@@ -1,3 +1,18 @@
+---
+type: "Glossary Concept"
+title: "Glossary"
+description: "Documents Glossary for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - glossary-concept
+navigation:
+  role: foundational
+  order: 20
+---
 # Glossary
 
 This glossary defines the product-language for the verified public contract of `google-workspace-mcp`.
@@ -101,3 +116,7 @@ _Avoid_: Always-on baseline tests
 - internal code presence could be mistaken for public commitment — resolved: **Internal Runtime Code** does not widen the **Publish Contract**
 - live test coverage could be mistaken for the default local harness — resolved: **Opt-In Live Validation** is gated proof, not the baseline path
 - family-level support and tool-level support could blur together — resolved: **Product Family** is the contract centre, with tool-level expansion kept subordinate
+
+## Repository knowledge
+
+- [Documentation map](docs/knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

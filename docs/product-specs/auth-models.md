@@ -1,3 +1,18 @@
+---
+type: "Product Contract"
+title: "Auth Models"
+description: "Documents Auth Models for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - product-contract
+navigation:
+  role: foundational
+  order: 20
+---
 # Auth Models
 
 This document defines the supported auth stories for `google-workspace-mcp`.
@@ -65,3 +80,7 @@ Evidence:
 - [tests/test_keep_contract.py](tests\test_keep_contract.py)
 - [tests/test_keep_portability_contract.py](tests\test_keep_portability_contract.py)
 - [tests/test_live_keep_master_token_contract.py](tests\test_live_keep_master_token_contract.py)
+
+## Repository knowledge
+
+- [Documentation map](../knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

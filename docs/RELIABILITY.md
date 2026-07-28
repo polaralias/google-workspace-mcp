@@ -1,3 +1,18 @@
+---
+type: "Reliability Contract"
+title: "Reliability"
+description: "Documents Reliability for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - reliability-contract
+navigation:
+  role: supporting
+  order: 100
+---
 # Reliability
 
 ## Current Reliability Contract
@@ -50,3 +65,7 @@ Opt-in live coverage protects:
 - [product-specs/support-matrix.md](docs\product-specs\support-matrix.md)
 - [generated/tool-support-matrix.md](docs\generated\tool-support-matrix.md)
 - [validation-report-2026-05-16.md](docs\validation-report-2026-05-16.md)
+
+## Repository knowledge
+
+- [Documentation map](knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

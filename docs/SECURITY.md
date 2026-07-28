@@ -1,3 +1,18 @@
+---
+type: "Security Boundary"
+title: "Security"
+description: "Documents Security for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - security-boundary
+navigation:
+  role: foundational
+  order: 20
+---
 # Security
 
 ## Security Principles
@@ -25,3 +40,7 @@
 - live tests create and clean up their own Workspace artefacts
 - Docker validation is health-only by default
 - support claims must stay aligned with the support matrix and per-tool matrix
+
+## Repository knowledge
+
+- [Documentation map](knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

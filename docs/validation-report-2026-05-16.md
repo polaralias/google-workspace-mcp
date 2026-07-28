@@ -1,3 +1,18 @@
+---
+type: "Validation Evidence"
+title: "Validation Report - 2026-05-16"
+description: "Documents Validation Report - 2026-05-16 for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: evidence
+verification: verified-limited
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - validation-evidence
+navigation:
+  role: reference
+  order: 200
+---
 # Validation Report - 2026-05-16
 
 Historical artefact note:
@@ -293,3 +308,7 @@ Impact:
    - Docs create/read/update/delete
    - Slides create/read/add slide/delete
    - Drive folder create/list/delete
+
+## Repository knowledge
+
+- [Documentation map](knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

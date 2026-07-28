@@ -1,3 +1,18 @@
+---
+type: "Product Contract"
+title: "Verified Support Matrix"
+description: "Documents Verified Support Matrix for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - product-contract
+navigation:
+  role: foundational
+  order: 20
+---
 # Verified Support Matrix
 
 This document is the canonical product contract for `google-workspace-mcp`.
@@ -56,3 +71,7 @@ The current public contract uses only `verified working` and `verified limited`.
 ## Excluded Capability Rule
 
 If a tool is not listed in the public manifests or the per-tool matrix, it is not part of the supported product contract even if an internal dispatcher still contains code for it.
+
+## Repository knowledge
+
+- [Documentation map](../knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

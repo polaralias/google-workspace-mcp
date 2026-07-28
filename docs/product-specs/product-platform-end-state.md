@@ -1,3 +1,18 @@
+---
+type: "Product Contract"
+title: "Product And Platform End State"
+description: "Documents Product And Platform End State for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - product-contract
+navigation:
+  role: foundational
+  order: 20
+---
 # Product And Platform End State
 
 This file now records the achieved publish boundary for `google-workspace-mcp`.
@@ -56,3 +71,7 @@ The repository is publish-ready when a fresh contributor can answer these questi
 - Which tests protect the public contract?
 
 That condition is now satisfied by the README, configuration guide, support matrix, per-tool matrix, architecture doc, and test suite.
+
+## Repository knowledge
+
+- [Documentation map](../knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.

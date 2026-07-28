@@ -1,3 +1,18 @@
+---
+type: "Reference"
+title: "Tool Reference"
+description: "Documents Tool Reference for the google-workspace-mcp repository."
+timestamp: 2026-07-28T21:55:36Z
+authority: canonical
+verification: untested
+owner: polaralias
+tags:
+  - google-workspace-mcp
+  - reference
+navigation:
+  role: reference
+  order: 200
+---
 # Tool Reference
 
 This reference is generated from the public Google Workspace tool manifests and covers all 53 unique tools exposed by the server.
@@ -564,3 +579,7 @@ Export a Google Slides presentation as PDF.
 - Parameters:
 - `user_google_email` | `string` | required
 - `presentation_id` | `string` | required
+
+## Repository knowledge
+
+- [Documentation map](knowledge/documentation-map.md) — RKE-managed reading order and relationship hub.
