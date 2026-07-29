@@ -107,7 +107,7 @@ def tool_support_rows() -> list[dict[str, str]]:
         evidence_source="[tests/test_live_calendar_contract.py](tests/test_live_calendar_contract.py)",
         last_validation_date="2026-05-23",
         evidence_type="automated",
-        known_limitations="Validated with owned-artifact create/get/delete coverage on a real calendar.",
+        known_limitations="Validated with owned-artefact create/get/delete coverage on a real calendar.",
     )
     _apply(
         rows,
@@ -207,7 +207,7 @@ def tool_support_rows() -> list[dict[str, str]]:
         evidence_source="[tests/test_live_gmail_contract.py](tests/test_live_gmail_contract.py)",
         last_validation_date="2026-05-23",
         evidence_type="automated",
-        known_limitations="Only read-only message search is validated. This should not be generalized to message-content or mutation wrappers.",
+        known_limitations="Only read-only message search is validated. This should not be generalised to message-content or mutation wrappers.",
     )
     _apply(
         rows,
@@ -287,7 +287,7 @@ def tool_support_rows() -> list[dict[str, str]]:
         evidence_source="[tests/test_live_keep_master_token_contract.py](tests/test_live_keep_master_token_contract.py), [tests/test_keep_contract.py](tests/test_keep_contract.py), [tests/test_keep_portability_contract.py](tests/test_keep_portability_contract.py)",
         last_validation_date="2026-05-23",
         evidence_type="automated",
-        known_limitations="Validated through the master-token path for list, create, read, update, delete, and label listing on owned Keep artifacts.",
+        known_limitations="Validated through the master-token path for list, create, read, update, delete, and label listing on owned Keep artefacts.",
     )
     ordered_rows = [rows[name] for name in sorted(rows)]
     for row in ordered_rows:
@@ -304,7 +304,7 @@ def render_tool_support_matrix() -> str:
     lines = [
         "# Per-Tool Support Matrix",
         "",
-        "This artifact is generated from the manifest inventory and curated support metadata in `tool_support.py`.",
+        "This artefact is generated from the manifest inventory and curated support metadata in `tool_support.py`.",
         "",
         "Interpretation rules:",
         "- This file is inventory plus support metadata, not a claim that every declared tool is safe to use.",
