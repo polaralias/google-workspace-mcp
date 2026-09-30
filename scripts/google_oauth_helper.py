@@ -37,12 +37,31 @@ SERVICE_SCOPES: dict[str, list[str]] = {
     "tasks": ["https://www.googleapis.com/auth/tasks"],
     "userinfo": [OPENID_SCOPE, USERINFO_EMAIL_SCOPE],
 }
+HEALTH_SCOPE_ROOT = "https://www.googleapis.com/auth/googlehealth."
+HEALTH_SCOPE_GROUPS = {
+    "health_activity": ["activity_and_fitness.readonly", "activity_and_fitness.writeonly"],
+    "health_metrics": ["health_metrics_and_measurements.readonly", "health_metrics_and_measurements.writeonly"],
+    "health_nutrition": ["nutrition.readonly", "nutrition.writeonly"],
+    "health_sleep": ["sleep.readonly", "sleep.writeonly"],
+    "health_profile": ["profile.readonly", "profile.writeonly"],
+    "health_settings": ["settings.readonly", "settings.writeonly"],
+    "health_sensitive": [
+        "ecg.readonly", "irn.readonly", "location.readonly", "logged_symptoms.writeonly",
+        "mindfulness.writeonly", "reproductive_health.writeonly",
+    ],
+}
+SERVICE_SCOPES.update({name: [HEALTH_SCOPE_ROOT + scope for scope in scopes] for name, scopes in HEALTH_SCOPE_GROUPS.items()})
+HEALTH_SERVICES = list(HEALTH_SCOPE_GROUPS)
 PROFILE_SERVICES: dict[str, list[str]] = {
     "calendar": ["calendar", "userinfo"],
     "docs": ["docs", "userinfo"],
     "drive": ["drive", "userinfo"],
     "forms": ["forms", "userinfo"],
     "gmail": ["gmail", "userinfo"],
+    "health": [*HEALTH_SERVICES, "userinfo"],
+    "health-activity": ["health_activity", "userinfo"],
+    "health-nutrition": ["health_nutrition", "userinfo"],
+    "health-read": [*HEALTH_SERVICES, "userinfo"],
     "keep": ["keep", "userinfo"],
     "keep-readonly": ["keep_readonly", "userinfo"],
     "meet": ["meet", "userinfo"],
@@ -124,7 +143,10 @@ def _scopes_for_profile(profile: str, without: list[str]) -> list[str]:
     services = [service for service in PROFILE_SERVICES[profile] if service not in set(without)]
     scopes: list[str] = []
     for service in services:
-        scopes.extend(SERVICE_SCOPES[service])
+        selected = SERVICE_SCOPES[service]
+        if profile == "health-read":
+            selected = [scope for scope in selected if not scope.endswith(".writeonly")]
+        scopes.extend(selected)
     return _dedupe(scopes)
 
 
@@ -184,6 +206,8 @@ def _write_credentials(path: Path, credentials) -> None:
         "token_uri": credentials.token_uri,
         "scopes": list(credentials.scopes or []),
     }
+    if getattr(credentials, "granted_scopes", None) is not None:
+        payload["granted_scopes"] = list(credentials.granted_scopes)
     if getattr(credentials, "expiry", None) is not None:
         payload["expiry"] = credentials.expiry.isoformat()
 
@@ -197,7 +221,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--profile",
         choices=sorted(PROFILE_SERVICES),
         default="gmail",
-        help="Scope bundle to request. Use 'gmail' for personal mail only, 'keep' for full Keep access, 'keep-readonly' for Keep read access, 'personal' for broader personal Google data, or 'workspace' for the full supported Workspace toolset.",
+        help="Scope bundle to request. Health profiles are separate from Workspace: health-read, health-activity, health-nutrition, or health for all documented Health scopes.",
     )
     parser.add_argument(
         "--without",

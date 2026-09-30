@@ -34,6 +34,7 @@ navigation:
 - Keep master-token access is high sensitivity and should be limited to trusted environments
 - API keys should be treated as scoped public-read credentials, not as a substitute for OAuth
 - OAuth credential files should be stored only in the configured credential directory and never committed
+- Health data uses separate OAuth scopes and may include highly sensitive categories. Health requests require a stored credential and matching scope; user-supplied URLs, account resource names, and bearer tokens are not accepted. Keep Health request and response bodies out of logs and validation artefacts.
 
 ## Validation Rules
 

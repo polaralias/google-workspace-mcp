@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from importlib.resources import files
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
@@ -14,6 +15,11 @@ def repo_root(current_file: str) -> Path:
 def load_manifest(root: Path) -> list[dict[str, Any]]:
     merged: dict[str, dict[str, Any]] = {}
     manifest_paths = sorted(root.glob("tool_manifest_google*.json"))
+    if not manifest_paths:
+        manifest_paths = sorted(
+            (item for item in files("google_workspace_mcp_data").iterdir() if item.name.startswith("tool_manifest_google") and item.name.endswith(".json")),
+            key=lambda item: item.name,
+        )
     found = False
     for path in manifest_paths:
         if not path.exists():
@@ -44,7 +50,7 @@ def register_tools(
         params = spec.get("parameters") or {"type": "object", "properties": {}, "additionalProperties": True}
         params = json.loads(json.dumps(params))
         properties = params.get("properties")
-        if isinstance(properties, dict) and "user_google_email" in properties:
+        if isinstance(properties, dict) and "user_google_email" in properties and not name.startswith("health_"):
             original = str(properties["user_google_email"].get("description") or "The user's Google email address.")
             properties["user_google_email"]["description"] = (
                 f"{original} Optional when GOOGLE_DEFAULT_USER_EMAIL is configured or "

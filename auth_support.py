@@ -115,7 +115,7 @@ class CredentialStore:
 
     def get(self, email: str) -> Credentials | None:
         user = str(email or "").strip().lower()
-        if not user:
+        if not re.fullmatch(r"[a-z0-9.!#$%&'*+?^_`{|}~-]+@[a-z0-9.-]+", user):
             return None
         path = self._path(user)
         if not path.exists():
@@ -138,6 +138,7 @@ class CredentialStore:
         refresh_token = payload.get("refresh_token")
         token_uri = payload.get("token_uri") or "https://oauth2.googleapis.com/token"
         scopes = _as_scopes(payload.get("scopes") or payload.get("scope"))
+        granted_scopes = _as_scopes(payload.get("granted_scopes"))
         if not client_id or not client_secret or (not token and not refresh_token):
             return None
 
@@ -148,6 +149,7 @@ class CredentialStore:
             client_id=client_id,
             client_secret=client_secret,
             scopes=scopes,
+            granted_scopes=granted_scopes,
         )
         expiry = _parse_expiry(payload)
         if expiry is not None:

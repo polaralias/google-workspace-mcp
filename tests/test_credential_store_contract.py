@@ -18,6 +18,7 @@ class CredentialStoreContractTests(unittest.TestCase):
                 "refresh_token": "refresh-token",
                 "expiry": "2099-01-01T00:00:00Z",
                 "scopes": ["scope-a", "scope-b"],
+                "granted_scopes": ["scope-a"],
             }
             (credentials_dir / "user@example.com.json").write_text(
                 json.dumps(payload),
@@ -32,6 +33,12 @@ class CredentialStoreContractTests(unittest.TestCase):
         self.assertEqual(creds.token, "access-token")
         self.assertEqual(creds.refresh_token, "refresh-token")
         self.assertEqual(set(creds.scopes or []), {"scope-a", "scope-b"})
+        self.assertEqual(creds.granted_scopes, ["scope-a"])
+
+    def test_get_rejects_email_path_traversal(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch.dict("os.environ", {"GOOGLE_MCP_CREDENTIALS_DIR": temp_dir}, clear=True):
+                self.assertIsNone(server.CredentialStore().get("../../other@example.com"))
 
     def test_get_returns_none_for_invalid_payload(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -46,4 +53,3 @@ class CredentialStoreContractTests(unittest.TestCase):
                 creds = store.get("user@example.com")
 
         self.assertIsNone(creds)
-

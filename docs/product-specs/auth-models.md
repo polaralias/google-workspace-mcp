@@ -63,6 +63,10 @@ Evidence:
 - [tests/test_live_public_api_key_contract.py](tests\test_live_public_api_key_contract.py)
 - [docs/validation-report-2026-05-16.md](docs\validation-report-2026-05-16.md)
 
+## Google Health OAuth
+
+Google Health API v4 is a separate upstream OAuth grant. Health tools accept only stored user credentials with the relevant Google Health read or write scope. The OAuth helper offers `health-read`, `health-activity`, `health-nutrition`, and `health` profiles. Workspace profiles do not implicitly request Health scopes. The server currently has offline contract tests; live authorization and operation results are unverified.
+
 ## Keep Master Token
 
 Purpose:

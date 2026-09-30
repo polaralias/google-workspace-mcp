@@ -33,6 +33,8 @@ Supported Google auth sources:
 
 ## MCP client auth
 
+For Google sign-in at the MCP HTTP boundary, set `MCP_AUTH_MODE=google-oauth` and follow [MCP client OAuth](mcp-oauth.md). This is separate from the OAuth credentials used by Google Workspace and Health tools. The legacy bearer keys remain available during migration and reject all MCP requests if none is configured. Remove them only after a live OAuth MCP client call succeeds.
+
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
 | `MCP_API_KEY` | No | none | Generic single-key alias if you prefer a shared naming pattern across services. |
@@ -76,6 +78,7 @@ Supported Google auth sources:
 - OAuth is the primary path for Calendar, Drive, Docs, Sheets, Slides, Gmail, Tasks, Contacts, Forms, and Meet.
 - Google Keep support is master-token-only. There is no supported OAuth-backed Keep story.
 - API-key-only setups are intentionally narrow and should be limited to the documented public-read subset.
+- Google Health v4 uses its own Google OAuth scopes. `health-read`, `health-activity`, `health-nutrition`, and `health` are explicit helper profiles; the `workspace` and `personal` profiles do not request Health scopes. Health calls never use `GOOGLE_API_KEY` or the Keep master token. Google's Health API currently is not onboarding new projects, so enablement and live verification require an already authorized Cloud project.
 
 ## Files and deployment notes
 

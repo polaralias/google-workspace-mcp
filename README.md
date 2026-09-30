@@ -29,6 +29,7 @@ The server exposes a verified subset of Google Workspace and Keep operations thr
 
 - Google Workspace tool surface with checked support evidence
 - OAuth-based access for the main Google Workspace flows
+- Google Health API v4 tools for its 43 documented data types, including activity readback, exercise sessions, and nutrition logs; live Health access is pending project authorization
 - limited API-key public-read compatibility path
 - Google Keep access through the documented master-token workflow
 - MCP and health endpoints for local or containerised runtime
@@ -40,6 +41,7 @@ The server exposes a verified subset of Google Workspace and Keep operations thr
 
 ## Supported Authentication
 
+- Google sign-in for MCP clients using `MCP_AUTH_MODE=google-oauth`; see [MCP client OAuth](docs/mcp-oauth.md)
 - `GOOGLE_WORKSPACE_MCP_API_KEY`, `MCP_API_KEY`, or `MCP_API_KEYS`
 - stored OAuth credentials in `.oauth/` or `GOOGLE_MCP_CREDENTIALS_DIR`
 - `GOOGLE_API_KEY` for the supported public-read subset
@@ -59,6 +61,8 @@ Helper flows:
 npm run google:oauth
 npm run google:keep-master-token
 ```
+
+Google Health requires a Cloud project with Health API access and separate consent. Run `uv run python scripts/google_oauth_helper.py --profile health-read` for read access, `--profile health-activity` or `--profile health-nutrition` for focused read/write access, or `--profile health` for every documented Health scope. Google currently says it is not onboarding new projects, so the Health tools have offline contract coverage but no live support claim yet. See [Google Health contract](docs/product-specs/google-health.md).
 
 ## Docker
 

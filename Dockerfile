@@ -17,12 +17,15 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock README.md fastmcp.json ./
 COPY *.py ./
+COPY health_catalog.json ./
 COPY tool_manifest_google.json ./
 COPY tool_manifest_google_admin_calendar_chat_docs.json ./
 COPY tool_manifest_google_drive_gmail.json ./
 COPY tool_manifest_google_keep_people_forms_meet.json ./
 COPY tool_manifest_google_keep_unofficial.json ./
 COPY tool_manifest_google_sheets_slides_tasks.json ./
+COPY tool_manifest_google_health.json ./
+COPY google_workspace_mcp_data ./google_workspace_mcp_data
 COPY scripts ./scripts
 
 RUN uv sync --no-dev

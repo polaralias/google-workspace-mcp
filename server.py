@@ -18,10 +18,12 @@ from drive_dispatch import DRIVE_TOOL_NAMES, dispatch_drive as _dispatch_drive_i
 from fastmcp import FastMCP
 from forms_dispatch import FORMS_TOOL_NAMES, dispatch_forms as _dispatch_forms_impl
 from gmail_dispatch import GMAIL_TOOL_NAMES, dispatch_gmail as _dispatch_gmail_impl
+from health_dispatch import HEALTH_TOOL_NAMES, dispatch_health as _dispatch_health_impl
 from keep_dispatch import KEEP_TOOL_NAMES, dispatch_keep_master_token as _dispatch_keep_master_token_impl
 from meet_dispatch import MEET_TOOL_NAMES, dispatch_meet as _dispatch_meet_impl
 from googleapiclient.discovery import build
 from manifest_support import load_manifest as _load_manifest_impl, register_tools as _register_tools_impl, repo_root as _repo_root_impl
+from mcp_oauth import select_mcp_auth
 import requests
 from sheets_dispatch import SHEETS_TOOL_NAMES, dispatch_sheets as _dispatch_sheets_impl
 from slides_dispatch import SLIDES_TOOL_NAMES, dispatch_slides as _dispatch_slides_impl
@@ -653,6 +655,8 @@ class GoogleRuntime:
 
     async def dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
         user_email = args.get("user_google_email")
+        if name in HEALTH_TOOL_NAMES:
+            return _dispatch_health_impl(self._store, self._default_user_email, name, args)
         if name in CALENDAR_TOOL_NAMES:
             return await _dispatch_calendar_impl(self, user_email, name, args, correct_time_format=_correct_time_format, build_calendar_event_body=_build_calendar_event_body, as_list=_as_list)
         if name in DOCS_TOOL_NAMES:
@@ -715,7 +719,7 @@ credential_store = CredentialStore()
 runtime = GoogleRuntime(credential_store)
 
 api_keys = _load_api_keys()
-auth = StaticApiKeyVerifier(api_keys=api_keys, base_url=_runtime_env("BASE_URL")) if api_keys else None
+auth = select_mcp_auth("google-workspace-mcp", StaticApiKeyVerifier, api_keys, _runtime_env("BASE_URL"))
 server = FastMCP("google-workspace-mcp", auth=auth)
 mcp = server
 _register_tools(server, runtime, manifest)

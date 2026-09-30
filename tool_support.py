@@ -10,6 +10,7 @@ from docs_dispatch import DOCS_TOOL_NAMES
 from drive_dispatch import DRIVE_TOOL_NAMES
 from forms_dispatch import FORMS_TOOL_NAMES
 from gmail_dispatch import GMAIL_TOOL_NAMES
+from health_dispatch import HEALTH_TOOL_NAMES
 from keep_dispatch import KEEP_TOOL_NAMES
 from manifest_support import repo_root
 from meet_dispatch import MEET_TOOL_NAMES
@@ -20,6 +21,7 @@ from tasks_dispatch import TASKS_TOOL_NAMES
 ALLOWED_SUPPORT_STATUSES = {
     "verified working",
     "verified limited",
+    "contract tested",
     "known broken",
     "untested",
 }
@@ -58,6 +60,7 @@ def runtime_tool_names() -> set[str]:
         | set(DRIVE_TOOL_NAMES)
         | set(FORMS_TOOL_NAMES)
         | set(GMAIL_TOOL_NAMES)
+        | set(HEALTH_TOOL_NAMES)
         | set(KEEP_TOOL_NAMES)
         | set(MEET_TOOL_NAMES)
         | set(SHEETS_TOOL_NAMES)
@@ -288,6 +291,16 @@ def tool_support_rows() -> list[dict[str, str]]:
         last_validation_date="2026-05-23",
         evidence_type="automated",
         known_limitations="Validated through the master-token path for list, create, read, update, delete, and label listing on owned Keep artefacts.",
+    )
+    _apply(
+        rows,
+        sorted(HEALTH_TOOL_NAMES),
+        auth_mode="Google Health OAuth",
+        status="contract tested",
+        evidence_source="[tests/test_health_contract.py](tests/test_health_contract.py)",
+        last_validation_date="2026-09-30",
+        evidence_type="offline contract",
+        known_limitations="Google Health project access and live read/write behaviour remain unverified; Google is not onboarding new projects at present.",
     )
     ordered_rows = [rows[name] for name in sorted(rows)]
     for row in ordered_rows:

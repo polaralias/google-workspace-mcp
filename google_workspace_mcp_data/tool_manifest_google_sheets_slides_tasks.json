@@ -1,0 +1,145 @@
+{
+  "tools": [
+    {
+      "name": "append_sheet_rows",
+      "description": "Append rows to a Google Sheet.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "spreadsheet_id": {
+            "type": "string"
+          },
+          "range_name": {
+            "type": "string"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {}
+            }
+          },
+          "value_input_option": {
+            "type": "string",
+            "enum": [
+              "RAW",
+              "USER_ENTERED"
+            ],
+            "default": "USER_ENTERED"
+          },
+          "insert_data_option": {
+            "type": "string",
+            "enum": [
+              "OVERWRITE",
+              "INSERT_ROWS"
+            ],
+            "default": "INSERT_ROWS"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "spreadsheet_id",
+          "range_name",
+          "values"
+        ]
+      }
+    },
+    {
+      "name": "batch_get_sheet_values",
+      "description": "Read multiple ranges from a Google Sheet.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "spreadsheet_id": {
+            "type": "string"
+          },
+          "ranges": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "major_dimension": {
+            "type": "string",
+            "enum": [
+              "ROWS",
+              "COLUMNS"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "spreadsheet_id",
+          "ranges"
+        ]
+      }
+    },
+    {
+      "name": "batch_update_sheet_values",
+      "description": "Update multiple ranges in a Google Sheet.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "spreadsheet_id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "value_input_option": {
+            "type": "string",
+            "enum": [
+              "RAW",
+              "USER_ENTERED"
+            ],
+            "default": "USER_ENTERED"
+          },
+          "include_values_in_response": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "spreadsheet_id",
+          "data"
+        ]
+      }
+    },
+    {
+      "name": "export_presentation_pdf",
+      "description": "Export a Google Slides presentation as PDF.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "presentation_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "presentation_id"
+        ]
+      }
+    }
+  ]
+}
