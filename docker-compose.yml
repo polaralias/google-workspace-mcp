@@ -18,6 +18,7 @@ services:
       MCP_OAUTH_ALLOWED_EMAILS: "${MCP_OAUTH_ALLOWED_EMAILS:-}"
       MCP_OAUTH_CLIENT_REDIRECT_URIS: "${MCP_OAUTH_CLIENT_REDIRECT_URIS:-}"
       GOOGLE_MCP_CREDENTIALS_DIR: /app/.oauth
+      GOOGLE_HEALTH_CREDENTIALS_DIR: "${GOOGLE_HEALTH_CREDENTIALS_DIR:-}"
       GOOGLE_WORKSPACE_MCP_API_KEY: "${GOOGLE_WORKSPACE_MCP_API_KEY:-}"
       MCP_API_KEY: "${MCP_API_KEY:-}"
       MCP_API_KEYS: "${MCP_API_KEYS:-}"
@@ -33,6 +34,7 @@ services:
       MASTER_KEY: "${MASTER_KEY:-}"
     volumes:
       - ./.oauth:/app/.oauth
+      - ./.oauth-health:/app/.oauth-health:ro
       - ./state/fastmcp:/app/state/fastmcp
     ports:
       - "${GOOGLE_WORKSPACE_MCP_HOST_PORT:-3002}:${GOOGLE_WORKSPACE_MCP_PORT:-3002}"

@@ -101,8 +101,8 @@ def _as_scopes(value: Any) -> list[str] | None:
 
 
 class CredentialStore:
-    def __init__(self) -> None:
-        custom_dir = _runtime_env("GOOGLE_MCP_CREDENTIALS_DIR")
+    def __init__(self, directory: str | Path | None = None) -> None:
+        custom_dir = directory or _runtime_env("GOOGLE_MCP_CREDENTIALS_DIR")
         self._base_dir = Path(custom_dir).expanduser() if custom_dir else Path.home() / ".google_workspace_mcp" / "credentials"
         self._base_dir.mkdir(parents=True, exist_ok=True)
 

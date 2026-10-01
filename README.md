@@ -64,6 +64,8 @@ npm run google:keep-master-token
 
 Google Health requires a Cloud project with Health API access and separate consent. Run `uv run python scripts/google_oauth_helper.py --profile health-read` for read access, `--profile health-activity` or `--profile health-nutrition` for focused read/write access, or `--profile health` for every documented Health scope. Google currently says it is not onboarding new projects, so the Health tools have offline contract coverage but no live support claim yet. See [Google Health contract](docs/product-specs/google-health.md).
 
+Health profiles save a separate grant in `.oauth-health/` by default. Set `GOOGLE_HEALTH_CREDENTIALS_DIR` to that directory for local execution. For Docker, run the consent helper on the host with `--credentials-dir .oauth-health --skip-env-update`, then set `GOOGLE_HEALTH_CREDENTIALS_DIR=/app/.oauth-health` in `.env`; the reference Compose file mounts `./.oauth-health` there read-only. Keep Workspace credentials in `./.oauth`. Use `--profile health` when you need both reads and all supported writes.
+
 ## Docker
 
 ```bash

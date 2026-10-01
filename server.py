@@ -616,6 +616,8 @@ def _build_calendar_event_body(args: dict[str, Any], recurring: bool = False) ->
 class GoogleRuntime:
     def __init__(self, store: CredentialStore) -> None:
         self._store = store
+        health_directory = _runtime_env("GOOGLE_HEALTH_CREDENTIALS_DIR")
+        self._health_store = CredentialStore(health_directory) if health_directory else store
         self._developer_key = _runtime_env("GOOGLE_API_KEY")
         self._default_user_email = _runtime_env("GOOGLE_DEFAULT_USER_EMAIL").lower()
         self._keep_master_token = GoogleKeepMasterTokenBackend(default_user_email=self._default_user_email)
@@ -656,7 +658,7 @@ class GoogleRuntime:
     async def dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
         user_email = args.get("user_google_email")
         if name in HEALTH_TOOL_NAMES:
-            return _dispatch_health_impl(self._store, self._default_user_email, name, args)
+            return _dispatch_health_impl(self._health_store, self._default_user_email, name, args)
         if name in CALENDAR_TOOL_NAMES:
             return await _dispatch_calendar_impl(self, user_email, name, args, correct_time_format=_correct_time_format, build_calendar_event_body=_build_calendar_event_body, as_list=_as_list)
         if name in DOCS_TOOL_NAMES:
