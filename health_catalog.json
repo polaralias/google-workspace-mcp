@@ -1,0 +1,583 @@
+{
+  "data_types": {
+    "active-energy-burned": {
+      "field": "activeEnergyBurned",
+      "filter": "active_energy_burned",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "active-minutes": {
+      "field": "activeMinutes",
+      "filter": "active_minutes",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "active-zone-minutes": {
+      "field": "activeZoneMinutes",
+      "filter": "active_zone_minutes",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "activity-level": {
+      "field": "activityLevel",
+      "filter": "activity_level",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "altitude": {
+      "field": "altitude",
+      "filter": "altitude",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "blood-glucose": {
+      "field": "bloodGlucose",
+      "filter": "blood_glucose",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "body-fat": {
+      "field": "bodyFat",
+      "filter": "body_fat",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "rollup",
+        "dailyRollup",
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "calories-in-heart-rate-zone": {
+      "field": null,
+      "filter": "calories_in_heart_rate_zone",
+      "operations": [
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "core-body-temperature": {
+      "field": "coreBodyTemperature",
+      "filter": "core_body_temperature",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "daily-heart-rate-variability": {
+      "field": "dailyHeartRateVariability",
+      "filter": "daily_heart_rate_variability",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "daily-heart-rate-zones": {
+      "field": "dailyHeartRateZones",
+      "filter": "daily_heart_rate_zones",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "daily-oxygen-saturation": {
+      "field": "dailyOxygenSaturation",
+      "filter": "daily_oxygen_saturation",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "daily-respiratory-rate": {
+      "field": "dailyRespiratoryRate",
+      "filter": "daily_respiratory_rate",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "daily-resting-heart-rate": {
+      "field": "dailyRestingHeartRate",
+      "filter": "daily_resting_heart_rate",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "daily-sleep-temperature-derivations": {
+      "field": "dailySleepTemperatureDerivations",
+      "filter": "daily_sleep_temperature_derivations",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "daily-vo2-max": {
+      "field": "dailyVo2Max",
+      "filter": "daily_vo2_max",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "distance": {
+      "field": "distance",
+      "filter": "distance",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "electrocardiogram": {
+      "field": "electrocardiogram",
+      "filter": "electrocardiogram",
+      "operations": [
+        "list"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.ecg.readonly"
+      ]
+    },
+    "exercise": {
+      "field": "exercise",
+      "filter": "exercise",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "floors": {
+      "field": "floors",
+      "filter": "floors",
+      "operations": [
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "food": {
+      "field": "food",
+      "filter": "food",
+      "operations": [
+        "list",
+        "get"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.nutrition.readonly",
+        "https://www.googleapis.com/auth/googlehealth.nutrition.writeonly"
+      ]
+    },
+    "food-measurement-unit": {
+      "field": "foodMeasurementUnit",
+      "filter": "food_measurement_unit",
+      "operations": [
+        "list",
+        "get"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.nutrition.readonly",
+        "https://www.googleapis.com/auth/googlehealth.nutrition.writeonly"
+      ]
+    },
+    "heart-rate": {
+      "field": "heartRate",
+      "filter": "heart_rate",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "heart-rate-variability": {
+      "field": "heartRateVariability",
+      "filter": "heart_rate_variability",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "height": {
+      "field": "height",
+      "filter": "height",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "hydration-log": {
+      "field": "hydrationLog",
+      "filter": "hydration_log",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "rollup",
+        "dailyRollup",
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.nutrition.readonly",
+        "https://www.googleapis.com/auth/googlehealth.nutrition.writeonly"
+      ]
+    },
+    "irregular-rhythm-notification": {
+      "field": "irregularRhythmNotification",
+      "filter": "irregular_rhythm_notification",
+      "operations": [
+        "list"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.irn.readonly"
+      ]
+    },
+    "menstrual-period": {
+      "field": "menstrualPeriod",
+      "filter": "menstrual_period",
+      "operations": [
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.reproductive_health.writeonly"
+      ]
+    },
+    "moods": {
+      "field": "moods",
+      "filter": "moods",
+      "operations": [
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.mindfulness.writeonly"
+      ]
+    },
+    "nutrition-log": {
+      "field": "nutritionLog",
+      "filter": "nutrition_log",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "rollup",
+        "dailyRollup",
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.nutrition.readonly",
+        "https://www.googleapis.com/auth/googlehealth.nutrition.writeonly"
+      ]
+    },
+    "ovulation-test": {
+      "field": "ovulationTest",
+      "filter": "ovulation_test",
+      "operations": [
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.reproductive_health.writeonly"
+      ]
+    },
+    "oxygen-saturation": {
+      "field": "oxygenSaturation",
+      "filter": "oxygen_saturation",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "respiratory-rate-sleep-summary": {
+      "field": "respiratoryRateSleepSummary",
+      "filter": "respiratory_rate_sleep_summary",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    },
+    "run-vo2-max": {
+      "field": "runVo2Max",
+      "filter": "run_vo2_max",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "sedentary-period": {
+      "field": "sedentaryPeriod",
+      "filter": "sedentary_period",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "sleep": {
+      "field": "sleep",
+      "filter": "sleep",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.sleep.readonly",
+        "https://www.googleapis.com/auth/googlehealth.sleep.writeonly"
+      ]
+    },
+    "steps": {
+      "field": "steps",
+      "filter": "steps",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "swim-lengths-data": {
+      "field": "swimLengthsData",
+      "filter": "swim_lengths_data",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "symptoms": {
+      "field": "symptoms",
+      "filter": "symptoms",
+      "operations": [
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.logged_symptoms.writeonly"
+      ]
+    },
+    "time-in-heart-rate-zone": {
+      "field": "timeInHeartRateZone",
+      "filter": "time_in_heart_rate_zone",
+      "operations": [
+        "list",
+        "reconcile",
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "total-calories": {
+      "field": null,
+      "filter": "total_calories",
+      "operations": [
+        "rollup",
+        "dailyRollup"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "vo2-max": {
+      "field": "vo2Max",
+      "filter": "vo2_max",
+      "operations": [
+        "list",
+        "reconcile"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
+        "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly"
+      ]
+    },
+    "weight": {
+      "field": "weight",
+      "filter": "weight",
+      "operations": [
+        "list",
+        "get",
+        "reconcile",
+        "rollup",
+        "dailyRollup",
+        "create",
+        "update",
+        "batchDelete"
+      ],
+      "scopes": [
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly",
+        "https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.writeonly"
+      ]
+    }
+  },
+  "discovery": "https://health.googleapis.com/$discovery/rest?version=v4",
+  "source": "https://developers.google.com/health/data-types"
+}

@@ -7,6 +7,7 @@ __pycache__
 .env
 .env.*
 .oauth
+.oauth-health
 gws.json
 .pytest_cache
 .mypy_cache

@@ -37,12 +37,31 @@ SERVICE_SCOPES: dict[str, list[str]] = {
     "tasks": ["https://www.googleapis.com/auth/tasks"],
     "userinfo": [OPENID_SCOPE, USERINFO_EMAIL_SCOPE],
 }
+HEALTH_SCOPE_ROOT = "https://www.googleapis.com/auth/googlehealth."
+HEALTH_SCOPE_GROUPS = {
+    "health_activity": ["activity_and_fitness.readonly", "activity_and_fitness.writeonly"],
+    "health_metrics": ["health_metrics_and_measurements.readonly", "health_metrics_and_measurements.writeonly"],
+    "health_nutrition": ["nutrition.readonly", "nutrition.writeonly"],
+    "health_sleep": ["sleep.readonly", "sleep.writeonly"],
+    "health_profile": ["profile.readonly", "profile.writeonly"],
+    "health_settings": ["settings.readonly", "settings.writeonly"],
+    "health_sensitive": [
+        "ecg.readonly", "irn.readonly", "location.readonly", "logged_symptoms.writeonly",
+        "mindfulness.writeonly", "reproductive_health.writeonly",
+    ],
+}
+SERVICE_SCOPES.update({name: [HEALTH_SCOPE_ROOT + scope for scope in scopes] for name, scopes in HEALTH_SCOPE_GROUPS.items()})
+HEALTH_SERVICES = list(HEALTH_SCOPE_GROUPS)
 PROFILE_SERVICES: dict[str, list[str]] = {
     "calendar": ["calendar", "userinfo"],
     "docs": ["docs", "userinfo"],
     "drive": ["drive", "userinfo"],
     "forms": ["forms", "userinfo"],
     "gmail": ["gmail", "userinfo"],
+    "health": [*HEALTH_SERVICES, "userinfo"],
+    "health-activity": ["health_activity", "userinfo"],
+    "health-nutrition": ["health_nutrition", "userinfo"],
+    "health-read": [*HEALTH_SERVICES, "userinfo"],
     "keep": ["keep", "userinfo"],
     "keep-readonly": ["keep_readonly", "userinfo"],
     "meet": ["meet", "userinfo"],
@@ -93,12 +112,13 @@ def _dedupe(values: list[str]) -> list[str]:
     return ordered
 
 
-def _credential_store_dir() -> Path:
-    configured = os.getenv("GOOGLE_MCP_CREDENTIALS_DIR", "").strip()
+def _credential_store_dir(health: bool = False) -> Path:
+    variable = "GOOGLE_HEALTH_CREDENTIALS_DIR" if health else "GOOGLE_MCP_CREDENTIALS_DIR"
+    configured = os.getenv(variable, "").strip()
     if configured:
         path = Path(configured).expanduser()
         return path if path.is_absolute() else REPO_ROOT / path
-    return DEFAULT_CREDENTIALS_DIR
+    return REPO_ROOT / ".oauth-health" if health else DEFAULT_CREDENTIALS_DIR
 
 
 def _client_config_from_env() -> dict[str, object] | None:
@@ -124,7 +144,10 @@ def _scopes_for_profile(profile: str, without: list[str]) -> list[str]:
     services = [service for service in PROFILE_SERVICES[profile] if service not in set(without)]
     scopes: list[str] = []
     for service in services:
-        scopes.extend(SERVICE_SCOPES[service])
+        selected = SERVICE_SCOPES[service]
+        if profile == "health-read":
+            selected = [scope for scope in selected if not scope.endswith(".writeonly")]
+        scopes.extend(selected)
     return _dedupe(scopes)
 
 
@@ -184,6 +207,8 @@ def _write_credentials(path: Path, credentials) -> None:
         "token_uri": credentials.token_uri,
         "scopes": list(credentials.scopes or []),
     }
+    if getattr(credentials, "granted_scopes", None) is not None:
+        payload["granted_scopes"] = list(credentials.granted_scopes)
     if getattr(credentials, "expiry", None) is not None:
         payload["expiry"] = credentials.expiry.isoformat()
 
@@ -197,7 +222,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--profile",
         choices=sorted(PROFILE_SERVICES),
         default="gmail",
-        help="Scope bundle to request. Use 'gmail' for personal mail only, 'keep' for full Keep access, 'keep-readonly' for Keep read access, 'personal' for broader personal Google data, or 'workspace' for the full supported Workspace toolset.",
+        help="Scope bundle to request. Health profiles are separate from Workspace: health-read, health-activity, health-nutrition, or health for all documented Health scopes.",
     )
     parser.add_argument(
         "--without",
@@ -214,10 +239,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--listen-host", default="127.0.0.1", help="Local host to bind for the temporary OAuth callback server.")
     parser.add_argument("--listen-port", type=int, default=8765, help="Local port for the temporary OAuth callback server.")
     parser.add_argument("--no-browser", action="store_true", help="Print the auth URL instead of opening a browser automatically.")
+    parser.add_argument("--credentials-dir", type=Path, help="Override the destination credential directory. Health profiles otherwise use GOOGLE_HEALTH_CREDENTIALS_DIR or .oauth-health.")
     parser.add_argument(
         "--skip-env-update",
         action="store_true",
-        help="Do not update the repo-local .env with GOOGLE_MCP_CREDENTIALS_DIR and GOOGLE_DEFAULT_USER_EMAIL.",
+        help="Do not update the repo-local .env with the selected credential directory and GOOGLE_DEFAULT_USER_EMAIL.",
     )
     return parser
 
@@ -225,6 +251,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     load_env_files()
     args = build_parser().parse_args()
+    health_profile = args.profile.startswith("health")
     scopes = _scopes_for_profile(args.profile, args.without)
 
     if args.client_secrets_file:
@@ -245,18 +272,18 @@ def main() -> int:
         authorization_prompt_message="Open this URL to authorize Google Workspace MCP: {url}",
         success_message="Google authorization completed. You can close this window.",
         access_type="offline",
-        include_granted_scopes="true",
+        include_granted_scopes="false" if health_profile else "true",
         prompt="consent",
     )
 
     email = _discover_email(credentials)
-    credentials_dir = _credential_store_dir()
+    credentials_dir = args.credentials_dir.expanduser().resolve() if args.credentials_dir else _credential_store_dir(health=health_profile)
     credential_path = credentials_dir / f"{email}.json"
     _write_credentials(credential_path, credentials)
 
     if not args.skip_env_update:
         env_updates = {
-            "GOOGLE_MCP_CREDENTIALS_DIR": _env_path_value(credentials_dir),
+            "GOOGLE_HEALTH_CREDENTIALS_DIR" if health_profile else "GOOGLE_MCP_CREDENTIALS_DIR": _env_path_value(credentials_dir),
             "GOOGLE_DEFAULT_USER_EMAIL": email,
         }
         _update_env_file(REPO_ROOT / ".env", env_updates)

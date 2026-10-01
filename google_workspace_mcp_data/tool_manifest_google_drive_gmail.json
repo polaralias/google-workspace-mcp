@@ -1,0 +1,108 @@
+{
+  "tools": [
+    {
+      "name": "create_drive_folder",
+      "description": "Create a folder in Google Drive.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "folder_name": {
+            "type": "string"
+          },
+          "parent_folder_id": {
+            "type": "string",
+            "default": "root"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "folder_name"
+        ]
+      }
+    },
+    {
+      "name": "delete_drive_file",
+      "description": "Delete a Drive file permanently.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "file_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "file_id"
+        ]
+      }
+    },
+    {
+      "name": "list_gmail_filters",
+      "description": "List Gmail filters.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email"
+        ]
+      }
+    },
+    {
+      "name": "create_gmail_filter",
+      "description": "Create a Gmail filter.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "criteria": {
+            "type": "object"
+          },
+          "action": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "criteria",
+          "action"
+        ]
+      }
+    },
+    {
+      "name": "delete_gmail_filter",
+      "description": "Delete a Gmail filter.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "filter_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "filter_id"
+        ]
+      }
+    }
+  ]
+}

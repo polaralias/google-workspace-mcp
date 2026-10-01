@@ -1,0 +1,390 @@
+{
+  "tools": [
+    {
+      "name": "health_catalog",
+      "description": "List the 43 documented Google Health data types, allowed operations, and required OAuth scopes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "health_list_data_points",
+      "description": "List Google Health records for a documented data type. Use page_token for the next page.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "One of the dataType IDs returned by health_catalog."
+          },
+          "filter": {
+            "type": "string"
+          },
+          "page_size": {
+            "type": "integer",
+            "default": 25
+          },
+          "page_token": {
+            "type": "string"
+          },
+          "data_source_family": {
+            "type": "string",
+            "enum": [
+              "all-sources",
+              "google-wearables",
+              "google-sources",
+              "self-sources"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type"
+        ]
+      }
+    },
+    {
+      "name": "health_get_data_point",
+      "description": "Read one Google Health record by data type and point ID.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "One of the dataType IDs returned by health_catalog."
+          },
+          "point_id": {
+            "type": "string",
+            "description": "The final ID segment of a users/me/dataTypes/{data_type}/dataPoints/{point_id} resource."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type",
+          "point_id"
+        ]
+      }
+    },
+    {
+      "name": "health_create_data_point",
+      "description": "Create a Google Health record where the selected data type supports create. Use nutrition-log for calories consumed and exercise for workout sessions.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "One of the dataType IDs returned by health_catalog."
+          },
+          "body": {
+            "type": "object",
+            "description": "Google Health API v4 request body for this operation."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type",
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "health_update_data_point",
+      "description": "Update a Google Health record owned by the OAuth client where the data type supports update.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "One of the dataType IDs returned by health_catalog."
+          },
+          "point_id": {
+            "type": "string",
+            "description": "The final ID segment of a users/me/dataTypes/{data_type}/dataPoints/{point_id} resource."
+          },
+          "body": {
+            "type": "object",
+            "description": "Google Health API v4 request body for this operation."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type",
+          "point_id",
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "health_delete_data_points",
+      "description": "Delete 1 to 100 records of one Google Health data type owned by the OAuth client.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "One of the dataType IDs returned by health_catalog."
+          },
+          "point_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type",
+          "point_ids"
+        ]
+      }
+    },
+    {
+      "name": "health_reconcile_data_points",
+      "description": "Reconcile Google Health records where the data type supports reconciliation.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "One of the dataType IDs returned by health_catalog."
+          },
+          "filter": {
+            "type": "string"
+          },
+          "data_source_family": {
+            "type": "string",
+            "enum": [
+              "all-sources",
+              "google-wearables",
+              "google-sources",
+              "self-sources"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type"
+        ]
+      }
+    },
+    {
+      "name": "health_rollup_data_points",
+      "description": "Aggregate Google Health records using a v4 RollUpDataPointsRequest body.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "One of the dataType IDs returned by health_catalog."
+          },
+          "body": {
+            "type": "object",
+            "description": "Google Health API v4 request body for this operation."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type",
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "health_daily_rollup_data_points",
+      "description": "Aggregate Google Health records by day using a v4 DailyRollUpDataPointsRequest body.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "description": "One of the dataType IDs returned by health_catalog."
+          },
+          "body": {
+            "type": "object",
+            "description": "Google Health API v4 request body for this operation."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type",
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "health_export_exercise_tcx",
+      "description": "Export one exercise record as TCX, capped at 1 MB.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "data_type": {
+            "type": "string",
+            "const": "exercise"
+          },
+          "point_id": {
+            "type": "string",
+            "description": "The final ID segment of a users/me/dataTypes/{data_type}/dataPoints/{point_id} resource."
+          },
+          "partial_data": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data_type",
+          "point_id"
+        ]
+      }
+    },
+    {
+      "name": "health_get_identity",
+      "description": "Read the Google Health user identity.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "health_get_profile",
+      "description": "Read the Google Health user profile.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "health_update_profile",
+      "description": "Update the Google Health user profile using an update mask.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "body": {
+            "type": "object",
+            "description": "Google Health API v4 request body for this operation."
+          },
+          "update_mask": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "health_get_settings",
+      "description": "Read the Google Health user settings.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "health_update_settings",
+      "description": "Update the Google Health user settings using an update mask.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          },
+          "body": {
+            "type": "object",
+            "description": "Google Health API v4 request body for this operation."
+          },
+          "update_mask": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "body"
+        ]
+      }
+    },
+    {
+      "name": "health_get_irn_profile",
+      "description": "Read the Google Health irregular rhythm notification profile.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string",
+            "description": "Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

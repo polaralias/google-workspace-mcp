@@ -1,0 +1,159 @@
+{
+  "tools": [
+    {
+      "name": "list_keep_notes",
+      "description": "List Google Keep notes using the unofficial master-token backend.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "colors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "archived": {
+            "type": "boolean",
+            "default": false
+          },
+          "trashed": {
+            "type": "boolean",
+            "default": false
+          },
+          "page_size": {
+            "type": "number",
+            "default": 25
+          },
+          "page_token": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_keep_note",
+      "description": "Get a Google Keep note using the unofficial master-token backend.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "note_name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "note_name"
+        ]
+      }
+    },
+    {
+      "name": "create_keep_note",
+      "description": "Create a Google Keep note using the unofficial master-token backend.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "list_items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "checked": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "delete_keep_note",
+      "description": "Delete a Google Keep note using the unofficial master-token backend.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "note_name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "note_name"
+        ]
+      }
+    },
+    {
+      "name": "update_keep_note",
+      "description": "Update a Google Keep note title and/or text using the unofficial master-token backend.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "note_name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "note_name"
+        ]
+      }
+    },
+    {
+      "name": "list_keep_labels",
+      "description": "List Google Keep labels using the unofficial master-token backend.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}

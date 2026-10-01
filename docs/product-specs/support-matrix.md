@@ -32,10 +32,11 @@ Support claims use:
 
 - `verified working`
 - `verified limited`
+- `contract tested` (offline request and permission contract only; no live Google Health claim)
 - `known broken`
 - `untested`
 
-The current public contract uses only `verified working` and `verified limited`. Previously unverified wrappers were removed from the manifests instead of being published as active tools.
+The existing Workspace contract uses `verified working` and `verified limited`. Google Health tools use `contract tested` until consented live validation is possible. Previously unverified Workspace wrappers remain excluded from the manifests.
 
 ## Current Family-Level Support
 
@@ -60,6 +61,7 @@ The current public contract uses only `verified working` and `verified limited`.
 | Forms | `batch_update_form` | OAuth | `verified working` | [tests/test_live_forms_contract.py](tests\test_live_forms_contract.py) | 2026-05-23 | automated | Validated on disposable forms. |
 | Meet conference records | `list_conference_records`, `get_conference_record` | OAuth | `verified limited` | [tests/test_live_meet_contract.py](tests\test_live_meet_contract.py) | 2026-05-23 | automated | Read-only probe; `get_conference_record` is exercised when records are available. |
 | Keep notes and labels | `list_keep_notes`, `get_keep_note`, `create_keep_note`, `update_keep_note`, `delete_keep_note`, `list_keep_labels` | Keep master token | `verified working` | [tests/test_keep_contract.py](tests\test_keep_contract.py), [tests/test_keep_portability_contract.py](tests\test_keep_portability_contract.py), [tests/test_live_keep_master_token_contract.py](tests\test_live_keep_master_token_contract.py) | 2026-05-23 | automated | Supported only through the unofficial Keep master-token path. |
+| Google Health API v4 | 16 `health_*` tools covering 43 documented data types and user profile/settings | Google Health OAuth | `contract tested` | [tests/test_health_contract.py](../../tests/test_health_contract.py), [google-health.md](google-health.md) | 2026-09-30 | offline contract | No live Google Health project has been verified; Google's developer notice currently says new projects are not being onboarded. |
 
 ## Contract Rules
 

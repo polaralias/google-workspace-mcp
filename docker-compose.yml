@@ -9,7 +9,16 @@ services:
       MCP_HOST: 0.0.0.0
       MCP_PORT: "${GOOGLE_WORKSPACE_MCP_PORT:-3002}"
       MCP_PATH: "${GOOGLE_WORKSPACE_MCP_PATH:-/mcp}"
+      FASTMCP_HOME: /app/state/fastmcp
+      MCP_AUTH_MODE: "${MCP_AUTH_MODE:-}"
+      MCP_OAUTH_GOOGLE_CLIENT_ID: "${MCP_OAUTH_GOOGLE_CLIENT_ID:-}"
+      MCP_OAUTH_GOOGLE_CLIENT_SECRET: "${MCP_OAUTH_GOOGLE_CLIENT_SECRET:-}"
+      MCP_OAUTH_BASE_URL: "${MCP_OAUTH_BASE_URL:-}"
+      MCP_OAUTH_SIGNING_KEY: "${MCP_OAUTH_SIGNING_KEY:-}"
+      MCP_OAUTH_ALLOWED_EMAILS: "${MCP_OAUTH_ALLOWED_EMAILS:-}"
+      MCP_OAUTH_CLIENT_REDIRECT_URIS: "${MCP_OAUTH_CLIENT_REDIRECT_URIS:-}"
       GOOGLE_MCP_CREDENTIALS_DIR: /app/.oauth
+      GOOGLE_HEALTH_CREDENTIALS_DIR: "${GOOGLE_HEALTH_CREDENTIALS_DIR:-}"
       GOOGLE_WORKSPACE_MCP_API_KEY: "${GOOGLE_WORKSPACE_MCP_API_KEY:-}"
       MCP_API_KEY: "${MCP_API_KEY:-}"
       MCP_API_KEYS: "${MCP_API_KEYS:-}"
@@ -25,6 +34,8 @@ services:
       MASTER_KEY: "${MASTER_KEY:-}"
     volumes:
       - ./.oauth:/app/.oauth
+      - ./.oauth-health:/app/.oauth-health:ro
+      - ./state/fastmcp:/app/state/fastmcp
     ports:
       - "${GOOGLE_WORKSPACE_MCP_HOST_PORT:-3002}:${GOOGLE_WORKSPACE_MCP_PORT:-3002}"
     healthcheck:

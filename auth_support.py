@@ -101,8 +101,8 @@ def _as_scopes(value: Any) -> list[str] | None:
 
 
 class CredentialStore:
-    def __init__(self) -> None:
-        custom_dir = _runtime_env("GOOGLE_MCP_CREDENTIALS_DIR")
+    def __init__(self, directory: str | Path | None = None) -> None:
+        custom_dir = directory or _runtime_env("GOOGLE_MCP_CREDENTIALS_DIR")
         self._base_dir = Path(custom_dir).expanduser() if custom_dir else Path.home() / ".google_workspace_mcp" / "credentials"
         self._base_dir.mkdir(parents=True, exist_ok=True)
 
@@ -115,7 +115,7 @@ class CredentialStore:
 
     def get(self, email: str) -> Credentials | None:
         user = str(email or "").strip().lower()
-        if not user:
+        if not re.fullmatch(r"[a-z0-9.!#$%&'*+?^_`{|}~-]+@[a-z0-9.-]+", user):
             return None
         path = self._path(user)
         if not path.exists():
@@ -138,6 +138,7 @@ class CredentialStore:
         refresh_token = payload.get("refresh_token")
         token_uri = payload.get("token_uri") or "https://oauth2.googleapis.com/token"
         scopes = _as_scopes(payload.get("scopes") or payload.get("scope"))
+        granted_scopes = _as_scopes(payload.get("granted_scopes"))
         if not client_id or not client_secret or (not token and not refresh_token):
             return None
 
@@ -148,6 +149,7 @@ class CredentialStore:
             client_id=client_id,
             client_secret=client_secret,
             scopes=scopes,
+            granted_scopes=granted_scopes,
         )
         expiry = _parse_expiry(payload)
         if expiry is not None:

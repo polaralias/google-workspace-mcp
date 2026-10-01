@@ -15,7 +15,7 @@ navigation:
 ---
 # Tool Reference
 
-This reference is generated from the public Google Workspace tool manifests and covers all 53 unique tools exposed by the server.
+This reference is generated from the public Google Workspace tool manifests and covers all 69 unique tools exposed by the server.
 
 Parameter format notes:
 - `required` means the manifest schema marks the field as mandatory.
@@ -388,6 +388,150 @@ List Gmail filters.
 
 - Parameters:
 - `user_google_email` | `string` | required
+
+## `tool_manifest_google_health.json`
+
+Source manifest: `tool_manifest_google_health.json`
+
+### `health_catalog`
+
+List the 43 documented Google Health data types, allowed operations, and required OAuth scopes.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+
+### `health_create_data_point`
+
+Create a Google Health record where the selected data type supports create. Use nutrition-log for calories consumed and exercise for workout sessions.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required | One of the dataType IDs returned by health_catalog.
+- `body` | `object` | required | Google Health API v4 request body for this operation.
+
+### `health_daily_rollup_data_points`
+
+Aggregate Google Health records by day using a v4 DailyRollUpDataPointsRequest body.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required | One of the dataType IDs returned by health_catalog.
+- `body` | `object` | required | Google Health API v4 request body for this operation.
+
+### `health_delete_data_points`
+
+Delete 1 to 100 records of one Google Health data type owned by the OAuth client.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required | One of the dataType IDs returned by health_catalog.
+- `point_ids` | `array` | required
+
+### `health_export_exercise_tcx`
+
+Export one exercise record as TCX, capped at 1 MB.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required
+- `point_id` | `string` | required | The final ID segment of a users/me/dataTypes/{data_type}/dataPoints/{point_id} resource.
+- `partial_data` | `boolean` | optional default `False`
+
+### `health_get_data_point`
+
+Read one Google Health record by data type and point ID.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required | One of the dataType IDs returned by health_catalog.
+- `point_id` | `string` | required | The final ID segment of a users/me/dataTypes/{data_type}/dataPoints/{point_id} resource.
+
+### `health_get_identity`
+
+Read the Google Health user identity.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+
+### `health_get_irn_profile`
+
+Read the Google Health irregular rhythm notification profile.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+
+### `health_get_profile`
+
+Read the Google Health user profile.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+
+### `health_get_settings`
+
+Read the Google Health user settings.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+
+### `health_list_data_points`
+
+List Google Health records for a documented data type. Use page_token for the next page.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required | One of the dataType IDs returned by health_catalog.
+- `filter` | `string` | optional
+- `page_size` | `integer` | optional default `25`
+- `page_token` | `string` | optional
+- `data_source_family` | `string` | optional
+
+### `health_reconcile_data_points`
+
+Reconcile Google Health records where the data type supports reconciliation.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required | One of the dataType IDs returned by health_catalog.
+- `filter` | `string` | optional
+- `data_source_family` | `string` | optional
+
+### `health_rollup_data_points`
+
+Aggregate Google Health records using a v4 RollUpDataPointsRequest body.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required | One of the dataType IDs returned by health_catalog.
+- `body` | `object` | required | Google Health API v4 request body for this operation.
+
+### `health_update_data_point`
+
+Update a Google Health record owned by the OAuth client where the data type supports update.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `data_type` | `string` | required | One of the dataType IDs returned by health_catalog.
+- `point_id` | `string` | required | The final ID segment of a users/me/dataTypes/{data_type}/dataPoints/{point_id} resource.
+- `body` | `object` | required | Google Health API v4 request body for this operation.
+
+### `health_update_profile`
+
+Update the Google Health user profile using an update mask.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `body` | `object` | required | Google Health API v4 request body for this operation.
+- `update_mask` | `string` | optional
+
+### `health_update_settings`
+
+Update the Google Health user settings using an update mask.
+
+- Parameters:
+- `user_google_email` | `string` | optional | Google account with stored Health OAuth consent; defaults to GOOGLE_DEFAULT_USER_EMAIL.
+- `body` | `object` | required | Google Health API v4 request body for this operation.
+- `update_mask` | `string` | optional
 
 ## `tool_manifest_google_keep_people_forms_meet.json`
 

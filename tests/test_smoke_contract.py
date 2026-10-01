@@ -41,7 +41,7 @@ class SmokeContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(manifest[0]["description"], "second")
 
     async def test_manifest_unique_tool_count_matches_documented_inventory(self):
-        self.assertEqual(len(server.manifest), 53)
+        self.assertEqual(len(server.manifest), 69)
 
     async def test_register_tools_registers_every_manifest_entry(self):
         fake_server = _FakeServer()

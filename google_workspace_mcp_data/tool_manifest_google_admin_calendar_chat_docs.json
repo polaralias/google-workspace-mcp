@@ -1,0 +1,142 @@
+{
+  "tools": [
+    {
+      "name": "get_free_busy",
+      "description": "Query Google Calendar free/busy information.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "time_min": {
+            "type": "string"
+          },
+          "time_max": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "time_zone": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "time_min",
+          "time_max",
+          "items"
+        ]
+      }
+    },
+    {
+      "name": "list_calendar_acl",
+      "description": "List ACL rules on a calendar.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "calendar_id": {
+            "type": "string",
+            "default": "primary"
+          },
+          "page_size": {
+            "type": "number",
+            "default": 100
+          },
+          "page_token": {
+            "type": "string"
+          },
+          "show_deleted": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email"
+        ]
+      }
+    },
+    {
+      "name": "create_calendar_acl_rule",
+      "description": "Create an ACL rule on a calendar.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "calendar_id": {
+            "type": "string",
+            "default": "primary"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "none",
+              "freeBusyReader",
+              "reader",
+              "writer",
+              "owner"
+            ]
+          },
+          "scope_type": {
+            "type": "string",
+            "enum": [
+              "default",
+              "user",
+              "group",
+              "domain"
+            ]
+          },
+          "scope_value": {
+            "type": "string"
+          },
+          "send_notifications": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "role",
+          "scope_type",
+          "scope_value"
+        ]
+      }
+    },
+    {
+      "name": "delete_calendar_acl_rule",
+      "description": "Delete an ACL rule from a calendar.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_google_email": {
+            "type": "string"
+          },
+          "calendar_id": {
+            "type": "string",
+            "default": "primary"
+          },
+          "rule_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "user_google_email",
+          "rule_id"
+        ]
+      }
+    }
+  ]
+}

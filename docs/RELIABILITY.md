@@ -21,7 +21,7 @@ Reliable today:
 
 - `uv run` startup and helper commands
 - MCP health routes
-- manifest registration for the public 53-tool surface
+- manifest registration for the public 69-tool surface, including 16 contract-tested Google Health tools
 - OAuth credential loading
 - Docker Compose startup and `/health`
 - live OAuth-backed validation for every public Workspace family
